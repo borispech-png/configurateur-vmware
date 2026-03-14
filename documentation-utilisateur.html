@@ -1,0 +1,850 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Documentation utilisateur - Configurateur de sortie VMware</title>
+  <style>
+    :root {
+      --bg: #f4f7f5;
+      --panel: #ffffff;
+      --ink: #13282c;
+      --muted: #4a6267;
+      --line: #d7e4e0;
+      --brand: #006d5d;
+      --brand2: #005f86;
+      --accent: #e9f6f2;
+      --warn: #fff5de;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background:
+        radial-gradient(circle at 5% -10%, rgba(0, 109, 93, 0.14), rgba(0, 109, 93, 0) 38%),
+        radial-gradient(circle at 95% 120%, rgba(0, 95, 134, 0.14), rgba(0, 95, 134, 0) 36%),
+        var(--bg);
+    }
+
+    .layout {
+      width: min(1320px, 96vw);
+      margin: 1.1rem auto 2rem;
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 1rem;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      box-shadow: 0 10px 20px rgba(5, 35, 42, 0.05);
+    }
+
+    .toc {
+      position: sticky;
+      top: 12px;
+      padding: 0.9rem;
+      max-height: calc(100vh - 24px);
+      overflow: auto;
+    }
+
+    .toc h2 {
+      margin: 0 0 0.5rem;
+      font-size: 1rem;
+      color: var(--brand);
+    }
+
+    .toc a {
+      display: block;
+      padding: 0.35rem 0.5rem;
+      margin: 0.16rem 0;
+      text-decoration: none;
+      color: #19474f;
+      border-radius: 8px;
+      border: 1px solid transparent;
+      font-size: 0.9rem;
+    }
+
+    .toc a:hover {
+      background: var(--accent);
+      border-color: #cde3db;
+    }
+
+    .content {
+      padding: 0.9rem;
+    }
+
+    .cover {
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      overflow: hidden;
+      margin-bottom: 0.85rem;
+    }
+
+    .cover-top {
+      background: linear-gradient(90deg, var(--brand), var(--brand2));
+      color: #fff;
+      padding: 1.1rem;
+    }
+
+    .cover-top h1 {
+      margin: 0;
+      font-size: clamp(1.2rem, 2.1vw, 1.9rem);
+    }
+
+    .cover-top p {
+      margin: 0.45rem 0 0;
+      color: #ffffff;
+      opacity: 0.95;
+    }
+
+    .meta {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0.6rem;
+      padding: 0.8rem;
+      background: #fbfefd;
+    }
+
+    .meta-box {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 0.55rem;
+      background: #fff;
+    }
+
+    .meta-label {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-bottom: 0.2rem;
+    }
+
+    .meta-value {
+      font-weight: 700;
+      color: #194b53;
+      font-size: 0.9rem;
+    }
+
+    section {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 0.85rem;
+      background: #fff;
+      margin-bottom: 0.75rem;
+    }
+
+    section h2 {
+      margin: 0 0 0.5rem;
+      color: var(--brand);
+      font-size: 1.05rem;
+    }
+
+    h3 {
+      margin: 0.6rem 0 0.35rem;
+      font-size: 0.95rem;
+      color: #1e4b53;
+    }
+
+    p,
+    li {
+      color: #26474d;
+      line-height: 1.48;
+      font-size: 0.91rem;
+    }
+
+    ul,
+    ol {
+      margin: 0.35rem 0 0.55rem 1.2rem;
+      padding: 0;
+    }
+
+    .chip {
+      display: inline-block;
+      border: 1px solid #b9d4cc;
+      background: var(--accent);
+      color: #115247;
+      border-radius: 999px;
+      padding: 0.2rem 0.55rem;
+      font-size: 0.76rem;
+      margin-right: 0.25rem;
+      margin-bottom: 0.25rem;
+      font-weight: 700;
+    }
+
+    .note {
+      border: 1px dashed #cbded8;
+      background: #f9fdfb;
+      border-radius: 10px;
+      padding: 0.6rem;
+      margin-top: 0.4rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 0.45rem 0;
+      font-size: 0.86rem;
+    }
+
+    th,
+    td {
+      border: 1px solid #d4e1dd;
+      padding: 0.45rem;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: #ecf7f3;
+      color: #15564b;
+      font-weight: 700;
+    }
+
+    tr:nth-child(even) td {
+      background: #fbfefd;
+    }
+
+    .warn {
+      background: var(--warn);
+      border-color: #ead9a6;
+    }
+
+    .kdb {
+      display: inline-block;
+      border: 1px solid #c7d8d3;
+      border-bottom-width: 2px;
+      border-radius: 6px;
+      padding: 0.08rem 0.4rem;
+      background: #f8fbfa;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #234850;
+    }
+
+    .assistant-flow {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(110px, 1fr));
+      gap: 0.4rem;
+      margin: 0.55rem 0 0.45rem;
+    }
+
+    .assistant-flow-step {
+      border: 1px solid #c8ddd6;
+      background: #f5fbf9;
+      border-radius: 10px;
+      padding: 0.5rem 0.45rem;
+      position: relative;
+      min-height: 74px;
+    }
+
+    .assistant-flow-step strong {
+      display: block;
+      color: #12514a;
+      font-size: 0.78rem;
+      margin-bottom: 0.16rem;
+    }
+
+    .assistant-flow-step span {
+      display: block;
+      color: #34585e;
+      font-size: 0.74rem;
+      line-height: 1.3;
+    }
+
+    .assistant-flow-step:not(:last-child)::after {
+      content: "→";
+      position: absolute;
+      right: -0.32rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #1d7a6a;
+      font-weight: 700;
+      font-size: 1rem;
+      z-index: 2;
+    }
+
+    .toplink {
+      text-align: right;
+      margin-top: 0.35rem;
+    }
+
+    .toplink a {
+      text-decoration: none;
+      color: var(--brand2);
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+
+    .footer {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.82rem;
+      margin-top: 0.65rem;
+    }
+
+    @media (max-width: 1080px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .toc {
+        position: static;
+        max-height: none;
+      }
+
+      .meta {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .assistant-flow {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .assistant-flow-step::after {
+        display: none;
+      }
+    }
+
+    @media (max-width: 700px) {
+      .meta {
+        grid-template-columns: 1fr;
+      }
+
+      .assistant-flow {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout" id="top">
+    <aside class="panel toc">
+      <h2>&#128203; Sommaire</h2>
+      <a href="#ch1">1. Introduction</a>
+      <a href="#ch2">2. Prise en main rapide</a>
+      <a href="#ch3">3. Guide pas a pas</a>
+      <a href="#ch4">4. Lecture des resultats</a>
+      <a href="#ch5">5. Parametrage avance</a>
+      <a href="#ch6">6. Exemples d'utilisation</a>
+      <a href="#ch7">7. Tableaux de reference</a>
+      <a href="#ch8">8. FAQ</a>
+      <a href="#ch9">9. Raccourcis</a>
+      <a href="#ch10">10. Glossaire</a>
+      <a href="#ch11">11. Version et horodatage</a>
+      <a href="#ch12">12. Support et gouvernance</a>
+    </aside>
+
+    <main class="panel content">
+      <div class="cover">
+        <div class="cover-top">
+          <h1>&#128218; Documentation utilisateur complete</h1>
+          <p>Configurateur de sortie VMware - Secteur public francais</p>
+        </div>
+        <div class="meta">
+          <div class="meta-box">
+            <div class="meta-label">Titre</div>
+            <div class="meta-value">Manuel d'exploitation et d'arbitrage</div>
+          </div>
+          <div class="meta-box">
+            <div class="meta-label">Sous-titre</div>
+            <div class="meta-value">Decision, conformite, pilotage et passage a l'echelle</div>
+          </div>
+          <div class="meta-box">
+            <div class="meta-label">Version courante</div>
+            <div class="meta-value" id="docVersion">V1.6</div>
+          </div>
+          <div class="meta-box">
+            <div class="meta-label">Horodatage auto</div>
+            <div class="meta-value" id="docTimestamp">-</div>
+          </div>
+        </div>
+      </div>
+
+      <section id="ch1">
+        <h2>1. &#127919; Introduction</h2>
+        <p>Ce document explique l'utilisation complete de l'application: saisie des donnees, interpretation des recommandations, validation de conformite, production des exports et pilotage phase 1 a phase 8.</p>
+        <div>
+          <span class="chip">Public cible: DSI</span>
+          <span class="chip">RSSI</span>
+          <span class="chip">Achats publics</span>
+          <span class="chip">Architecture</span>
+          <span class="chip">Direction</span>
+        </div>
+        <div class="note">
+          <strong>&#128204; Finalite:</strong> produire une recommandation argumentee face a VMware, tracer les hypotheses et securiser les decisions de comite.
+        </div>
+        <div class="toplink"><a href="#top">Retour au sommaire</a></div>
+      </section>
+
+      <section id="ch2">
+        <h2>2. &#9889; Prise en main rapide</h2>
+        <ol>
+          <li>Choisir entre questionnaire classique ou assistant visuel (fil d'ariane).</li>
+          <li>Renseigner le profil organisationnel et les contraintes.</li>
+          <li>Lancer l'analyse.</li>
+          <li>Generer un retroplanning Gantt puis ajuster les profils (Technicien, Ingenieur, Chef de projet, Autres).</li>
+          <li>Verifier la recommandation, les justifications et les vigilances.</li>
+          <li>Ajuster les seuils si necessaire et verifier le statut "Pret comite".</li>
+          <li>Exporter en PDF, Excel ou dossier comite.</li>
+        </ol>
+        <table>
+          <thead>
+            <tr>
+              <th>Zone</th>
+              <th>Objectif</th>
+              <th>Impact</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Contexte organisation</td>
+              <td>Definir taille et criticite</td>
+              <td>Pondere les criteres de risque et maturite</td>
+            </tr>
+            <tr>
+              <td>Contraintes souverainete/conformite</td>
+              <td>Controler les obligations reglementaires</td>
+              <td>Peut bloquer certaines options en mode strict</td>
+            </tr>
+            <tr>
+              <td>Mode de decision</td>
+              <td>Choisir Top1 / Top3 / Strict</td>
+              <td>Change la shortlist finale</td>
+            </tr>
+            <tr>
+              <td>Mode lecture comite</td>
+              <td>Basculer en affichage simplifie</td>
+              <td>Facilite presentation et arbitrage en comite</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="toplink"><a href="#top">Retour au sommaire</a></div>
+      </section>
+
+      <section id="ch3">
+        <h2>3. &#128736; Guide pas a pas</h2>
+        <h3>Etape 1 - Coordonnees client</h3>
+        <p>Renseigner organisation, contact, role, email, telephone, date d'evaluation et logo.</p>
+        <h3>Etape 2 - Profil d'infrastructure</h3>
+        <p>Completer nombre de VM, hote(s), sites, criticite et dependances VMware (vSAN, NSX, Horizon, PRA).</p>
+        <h3>Etape 3 - Conformite et securite</h3>
+        <p>Definir souverainete, niveau de securite, auditabilite, hebergement sante si applicable.</p>
+        <h3>Etape 4 - Capacite interne et trajectoire</h3>
+        <p>Specifier competences Linux/automatisation, capacite run, horizon de sortie et tolerance au changement.</p>
+        <h3>Etape 5 - Parametrage decisionnel</h3>
+        <p>Choisir mode de decision, seuils minimaux, horizon TCO 3 ou 5 ans, version de regles active.</p>
+        <h3>Etape 6 - Lancer et lire les resultats</h3>
+        <p>Cliquer sur analyse, verifier Top recommandations, ecart vs VMware, justifications et plan de transition.</p>
+        <h3>Etape 7 - Export et partage</h3>
+        <p>Produire PDF (comite), Excel (analyse detaillee) ou dossier comite (PDF + Excel) puis archiver.</p>
+        <h3>Etape 8 - Validation qualite</h3>
+        <p>Executer les tests phase B et la recette comite C + D pour obtenir un verdict PASS/ALERTE avant diffusion.</p>
+        <h3>Parcours Assistant guide (fil d'ariane)</h3>
+        <p>L'assistant visuel est un parcours modal en 6 etapes: <strong>Profil</strong>, <strong>Contexte</strong>, <strong>Reglementaire</strong>, <strong>Equipes</strong>, <strong>Trajectoire</strong>, <strong>Arbitrage</strong>.</p>
+        <p>Il est accessible depuis le bouton <em>Assistant guide (fil d'ariane)</em> ou depuis <em>Ouvrir l'assistant sur cette etape</em> dans le formulaire.</p>
+        <div class="assistant-flow" aria-label="Schema des etapes de l'assistant guide">
+          <div class="assistant-flow-step"><strong>1. Profil</strong><span>Type d'organisation, VM, criticite</span></div>
+          <div class="assistant-flow-step"><strong>2. Contexte</strong><span>Sites, hotes, dependances VMware</span></div>
+          <div class="assistant-flow-step"><strong>3. Reglementaire</strong><span>Souverainete, securite, conformite</span></div>
+          <div class="assistant-flow-step"><strong>4. Equipes</strong><span>Linux, automatisation, capacite run</span></div>
+          <div class="assistant-flow-step"><strong>5. Trajectoire</strong><span>Horizon, tolerance, profil migration</span></div>
+          <div class="assistant-flow-step"><strong>6. Arbitrage</strong><span>Priorites, mode de sortie, workflow comite</span></div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Fonction assistant</th>
+              <th>Comportement</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Scenarios pre-remplis</td>
+              <td>4 scenarios disponibles: Collectivite, Ministere, Sante, Social, avec application automatique des champs de l'assistant.</td>
+            </tr>
+            <tr>
+              <td>Completude</td>
+              <td>La progression est calculee sur les etapes visitees. Une case non cochee est consideree comme une reponse explicite valide.</td>
+            </tr>
+            <tr>
+              <td>Appliquer au questionnaire</td>
+              <td>Recopie toutes les valeurs assistant vers le formulaire principal, sans lancer l'analyse.</td>
+            </tr>
+            <tr>
+              <td>Appliquer et lancer l'analyse</td>
+              <td>Recopie les valeurs, ferme la fenetre assistant, puis lance immediatement l'analyse complete.</td>
+            </tr>
+            <tr>
+              <td>Fermeture</td>
+              <td>Possible par bouton <em>Fermer</em>, clic sur l'overlay externe, ou touche <span class="kdb">Echap</span>.</td>
+            </tr>
+            <tr>
+              <td>Workflow comite (etape 6)</td>
+              <td>Les validations analyste technique, RSSI, achats/juridique et decision comite final sont integrees directement dans l'arbitrage assistant.</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="note warn">
+          <strong>&#9888; Attention:</strong> en mode strict, l'outil peut retourner "Aucune option acceptable" si les seuils et controles conformite ne sont pas atteints.
+        </div>
+        <div class="toplink"><a href="#top">Retour au sommaire</a></div>
+      </section>
+
+      <section id="ch4">
+        <h2>4. &#128200; Lecture des resultats</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Bloc resultat</th>
+              <th>Ce que cela signifie</th>
+              <th>Action recommandee</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Score global</td>
+              <td>Score synthetique multicritere</td>
+              <td>Comparer avec VMware et les 3 premiers</td>
+            </tr>
+            <tr>
+              <td>Pourquoi oui / Pourquoi non</td>
+              <td>Explicabilite des facteurs</td>
+              <td>Valider en comite metier/technique</td>
+            </tr>
+            <tr>
+              <td>Conditions de succes</td>
+              <td>Pre-requis de mise en oeuvre</td>
+              <td>Transformer en plan d'actions</td>
+            </tr>
+            <tr>
+              <td>Conformite et audit</td>
+              <td>Etat des controles sectoriels</td>
+              <td>Traiter les alertes avant contractualisation</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="toplink"><a href="#top">Retour au sommaire</a></div>
+      </section>
+
+      <section id="ch5">
+        <h2>5. &#9881; Parametrage avance</h2>
+        <h3>Phase A - UX et adoption</h3>
+        <p>Assistant visuel en fil d'ariane (6 etapes), scenarios pre-remplis, completude par etapes visitees, mode lecture comite, aides contextuelles et confirmation d'export.</p>
+        <h3>Phase B - Fiabilite des decisions</h3>
+        <p>Moteur de regles explicite, calibration des poids par profil, garde-fous de saisie, journal d'audit et tests de non-regression.</p>
+        <h3>Phase 3 - Gouvernance des regles</h3>
+        <p>Maintenir la version active des regles, l'historique de changements et les seuils de filtrage.</p>
+        <h3>Phase C - Conformite et gouvernance comite</h3>
+        <p>Matrice conformite + preuves attendues, workflow de validation (analyste/RSSI/achats/decision), statut "Pret comite" et retention des historiques.</p>
+        <h3>Phase D - Reporting executif</h3>
+        <p>Risques prioritaires avec mitigations, comparatif multi-scenarios, mini-graphiques KPI/portefeuille et templates d'export par secteur.</p>
+        <h3>Phase 5 - Pilotage terrain</h3>
+        <p>Tracer les cas pilotes, mesurer les KPI d'acceptation et alimenter un backlog d'amelioration.</p>
+        <h3>Phase 6 - Passage a l'echelle</h3>
+        <p>Mutualiser des cas anonymises, consolider le portefeuille multi-entites, journaliser la gouvernance trimestrielle et maintenir le referentiel.</p>
+        <h3>Phase 7 - Annexe RVTools et recette integree</h3>
+        <p>Consolider le snapshot RVTools (metriques + journal d'application), alimenter les exports PDF/Excel et executer une recette fonctionnelle non destructive de la restitution.</p>
+        <h3>Phase 8 - Comparaison avant / apres migration</h3>
+        <p>Comparer la baseline VMware issue de RVTools avec la cible recommandee: deltas capacitaires, projection TCO, trajectoire de migration et actions prioritaires.</p>
+        <h3>Phase 9 - Retroplanning Gantt et profils equipe</h3>
+        <p>Generer un planning multi-scenarios (Rapide, Reference, Securise) et calibrer les profils Technicien, Ingenieur, Chef de projet et Autres (ex: RSSI, expert securite). La couverture de profils et le goulot principal impactent automatiquement le delai cible et le risque planning.</p>
+        <div class="toplink"><a href="#top">Retour au sommaire</a></div>
+      </section>
+
+      <section id="ch6">
+        <h2>6. &#129504; Exemples d'utilisation</h2>
+        <h3>Exemple A - Collectivite, budget contraint</h3>
+        <p><strong>Contexte:</strong> 180 VM, souverainete forte, capacite Linux moyenne.</p>
+        <p><strong>Resultat attendu:</strong> alternatives orientees maitrise des couts avec risque modere.</p>
+
+        <h3>Exemple B - Ministere, securite maximale</h3>
+        <p><strong>Contexte:</strong> exigences de securite elevees, auditabilite stricte.</p>
+        <p><strong>Resultat attendu:</strong> options compatibles souverainete forte et controles renforces.</p>
+
+        <h3>Exemple C - Sante, donnees sensibles</h3>
+        <p><strong>Contexte:</strong> criticite vitale, obligations d'hebergement et de tracabilite.</p>
+        <p><strong>Resultat attendu:</strong> shortlist prudente, validation conformite prioritaire.</p>
+
+        <h3>Exemple D - Sortie acceleree (12 mois)</h3>
+        <p><strong>Contexte:</strong> contrainte calendrier forte, tolerance changement faible.</p>
+        <p><strong>Resultat attendu:</strong> priorite a la vitesse de sortie et a la faisabilite operationnelle.</p>
+        <div class="toplink"><a href="#top">Retour au sommaire</a></div>
+      </section>
+
+      <section id="ch7">
+        <h2>7. &#128202; Tableaux de reference</h2>
+        <h3>Interpretation des niveaux de confiance</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Niveau</th>
+              <th>Signification</th>
+              <th>Decision type</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Eleve</td>
+              <td>Risque d'execution limite</td>
+              <td>Lancer pilote et plan de transition</td>
+            </tr>
+            <tr>
+              <td>Moyen</td>
+              <td>Risque maitrisable avec actions</td>
+              <td>Arbitrer avec conditions formelles</td>
+            </tr>
+            <tr>
+              <td>Sous surveillance</td>
+              <td>Risque eleve ou contraintes fortes</td>
+              <td>Revoir hypotheses/seuils avant validation</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>Seuils recommandes (point de depart)</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Critere</th>
+              <th>Seuil initial conseille</th>
+              <th>Quand le durcir</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Securite</td>
+              <td>7</td>
+              <td>Donnees sensibles / audit exigeant</td>
+            </tr>
+            <tr>
+              <td>Souverainete</td>
+              <td>6</td>
+              <td>Organisations regaliennes</td>
+            </tr>
+            <tr>
+              <td>Reversibilite</td>
+              <td>6</td>
+              <td>Engagement contractuel long</td>
+            </tr>
+            <tr>
+              <td>Risque migration</td>
+              <td>5</td>
+              <td>Fenetre de changement reduite</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="toplink"><a href="#top">Retour au sommaire</a></div>
+      </section>
+
+      <section id="ch8">
+        <h2>8. &#10067; FAQ</h2>
+        <h3>Pourquoi "Aucune option acceptable" ?</h3>
+        <p>Les seuils stricts ou les controles conformite eliminent toutes les options. Assouplir temporairement un seuil pour tester des scenarii.</p>
+        <h3>Que faire si l'ecart score est faible ?</h3>
+        <p>Prioriser les contraintes non negotiables (conformite, reversibilite, support), puis utiliser un pilote cible pour departager.</p>
+        <h3>Comment exploiter la phase 5 ?</h3>
+        <p>Ajouter chaque cas pilote, suivre les KPI d'acceptation et alimenter le backlog d'amelioration continue.</p>
+        <h3>La phase 6 remplace-t-elle la phase 5 ?</h3>
+        <p>Non. La phase 5 mesure localement l'adoption; la phase 6 consolide a l'echelle multi-entites.</p>
+        <h3>A quoi sert la phase 7 RVTools ?</h3>
+        <p>Elle transforme l'import RVTools en annexe exploitable en comite: resume, metriques techniques, journal d'application et recette de verification integree.</p>
+        <h3>Que couvre la phase 8 avant / apres ?</h3>
+        <p>Elle projette la situation cible post-migration (hotes, snapshots, dette technique, TCO, actions) a partir de la recommandation et des donnees RVTools.</p>
+        <h3>Comment verifier la fiabilite globale ?</h3>
+        <p>Executer les cas tests phase 1, les tests phase B, la recette comite C + D, la recette phase 6 et la recette phase 7 apres chaque evolution de regles.</p>
+        <h3>A quoi sert le statut "Pret comite" ?</h3>
+        <p>Il confirme que workflow, conformite obligatoire et recommandations publiables sont alignes pour une presentation de decision.</p>
+        <h3>Que fait "Exporter dossier comite" ?</h3>
+        <p>Le bouton enchaine automatiquement la generation d'un PDF comite et d'un Excel annexe dans le template sectoriel selectionne.</p>
+        <h3>Comment utiliser les profils dans le Gantt ?</h3>
+        <p>Renseigner effectif, disponibilite et seniorite pour Technicien, Ingenieur et Chef de projet. Ajouter les profils "Autres" necessaires (RSSI, expert reseau, etc.). Le moteur ajuste ensuite les durees, le risque et met en avant le goulot principal.</p>
+        <h3>Pourquoi la completude assistant n'est pas a 100% ?</h3>
+        <p>La completude se base sur les etapes visitees du parcours assistant. Si une etape n'a pas ete ouverte, elle n'entre pas dans le calcul affiche, meme si certains champs sont deja pre-remplis.</p>
+        <div class="toplink"><a href="#top">Retour au sommaire</a></div>
+      </section>
+
+      <section id="ch9">
+        <h2>9. &#9000; Raccourcis</h2>
+        <p>Raccourcis recommandes pour usage quotidien:</p>
+        <table>
+          <thead>
+            <tr>
+              <th>Action</th>
+              <th>Raccourci</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Lancer l'analyse</td>
+              <td><span class="kdb">Ctrl</span> + <span class="kdb">Entrer</span></td>
+            </tr>
+            <tr>
+              <td>Ouvrir l'assistant guide</td>
+              <td><span class="kdb">Ctrl</span> + <span class="kdb">Shift</span> + <span class="kdb">A</span></td>
+            </tr>
+            <tr>
+              <td>Reinitialiser le formulaire</td>
+              <td><span class="kdb">Ctrl</span> + <span class="kdb">R</span></td>
+            </tr>
+            <tr>
+              <td>Exporter PDF</td>
+              <td><span class="kdb">Ctrl</span> + <span class="kdb">P</span></td>
+            </tr>
+            <tr>
+              <td>Exporter Excel</td>
+              <td><span class="kdb">Ctrl</span> + <span class="kdb">E</span></td>
+            </tr>
+            <tr>
+              <td>Ouvrir la documentation</td>
+              <td><span class="kdb">Ctrl</span> + <span class="kdb">D</span></td>
+            </tr>
+            <tr>
+              <td>Basculer mode lecture comite</td>
+              <td>Bouton "Mode lecture comite"</td>
+            </tr>
+            <tr>
+              <td>Fermer la fenetre assistant</td>
+              <td><span class="kdb">Echap</span></td>
+            </tr>
+            <tr>
+              <td>Executer recette comite C + D</td>
+              <td>Bouton "Executer la recette C + D"</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="note">
+          <strong>&#128161; Astuce:</strong> vous pouvez utiliser la recherche du navigateur (<span class="kdb">Ctrl</span> + <span class="kdb">F</span>) pour trouver rapidement une section de cette documentation.
+        </div>
+        <div class="toplink"><a href="#top">Retour au sommaire</a></div>
+      </section>
+
+      <section id="ch10">
+        <h2>10. &#128214; Glossaire</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Terme</th>
+              <th>Definition</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>TCO</td>
+              <td>Cout total de possession sur un horizon donne (3/5 ans).</td>
+            </tr>
+            <tr>
+              <td>PRA/PCA</td>
+              <td>Plan de reprise/continuite d'activite en cas d'incident.</td>
+            </tr>
+            <tr>
+              <td>Reversibilite</td>
+              <td>Capacite a changer de solution ou de fournisseur sans blocage majeur.</td>
+            </tr>
+            <tr>
+              <td>Mode strict</td>
+              <td>Mode de decision qui exige le respect des seuils et des controles conformite.</td>
+            </tr>
+            <tr>
+              <td>Mutualisation</td>
+              <td>Partage de cas anonymises entre entites pour accelerer la prise de decision.</td>
+            </tr>
+            <tr>
+              <td>Statut "Pret comite"</td>
+              <td>Indicateur de readiness combinant workflow de validation, conformite obligatoire et recommendation publiable.</td>
+            </tr>
+            <tr>
+              <td>Dossier comite</td>
+              <td>Package d'export compose d'un PDF executif et d'un Excel d'annexes gouvernance/conformite.</td>
+            </tr>
+            <tr>
+              <td>Couverture profils</td>
+              <td>Indicateur de capacite de l'equipe par rapport au besoin estime du planning (100% = cible atteinte).</td>
+            </tr>
+            <tr>
+              <td>Goulot principal</td>
+              <td>Profil le plus contraint (ex: Ingenieur, Chef de projet) qui limite le rythme global du retroplanning.</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="toplink"><a href="#top">Retour au sommaire</a></div>
+      </section>
+
+      <section id="ch11">
+        <h2>11. &#9200; Version et horodatage automatique</h2>
+        <p>La version affichee est <strong>V1.6</strong>. Un horodatage automatique est enregistre a chaque evolution de version detectee.</p>
+        <table>
+          <thead>
+            <tr>
+              <th>Version</th>
+              <th>Date/heure d'enregistrement</th>
+              <th>Type d'evenement</th>
+            </tr>
+          </thead>
+          <tbody id="historyBody"></tbody>
+        </table>
+        <div class="note">
+          <strong>&#9989; Regle:</strong> si la version change (ex: V1.5 -&gt; V1.6), une nouvelle entree horodatee est ajoutee automatiquement au journal.
+        </div>
+        <div class="toplink"><a href="#top">Retour au sommaire</a></div>
+      </section>
+
+      <section id="ch12">
+        <h2>12. &#129309; Support et gouvernance documentaire</h2>
+        <ul>
+          <li>Owner metier: responsable architecture.</li>
+          <li>Validation: RSSI + Achats + Juridique.</li>
+          <li>Rythme de revue recommande: mensuel sur regles, trimestriel sur portefeuille multi-entites et readiness comite.</li>
+          <li>Controle qualite: executer les cas tests phase 1, tests phase B, recette C + D, recette phase 6 et recette phase 7 apres toute modification.</li>
+        </ul>
+        <div class="footer">Documentation utilisateur - Configurateur de sortie VMware</div>
+        <div class="toplink"><a href="#top">Retour au sommaire</a></div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    (function() {
+      const DOC_VERSION = "V1.6";
+      const DOC_BUILD_TS = "2026-03-14T16:00:00.000Z";
+      const DOC_EVENT = "Ajout schema visuel assistant guide";
+      const HISTORY_KEY = "vmwareUserDocVersionHistory";
+      const nowIso = DOC_BUILD_TS;
+      const nowFr = new Date(nowIso).toLocaleString("fr-FR");
+
+      document.getElementById("docVersion").textContent = DOC_VERSION;
+      document.getElementById("docTimestamp").textContent = nowFr;
+
+      const raw = localStorage.getItem(HISTORY_KEY);
+      const history = raw ? JSON.parse(raw) : [];
+      if (!history.length || history[0].version !== DOC_VERSION) {
+        history.unshift({
+          version: DOC_VERSION,
+          timestamp: nowIso,
+          event: DOC_EVENT
+        });
+        localStorage.setItem(HISTORY_KEY, JSON.stringify(history.slice(0, 30)));
+      }
+
+      const body = document.getElementById("historyBody");
+      const list = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
+      body.innerHTML = list.map((item) => {
+        return "<tr>" +
+          "<td>" + item.version + "</td>" +
+          "<td>" + new Date(item.timestamp).toLocaleString("fr-FR") + "</td>" +
+          "<td>" + (item.event || "Evolution de version") + "</td>" +
+        "</tr>";
+      }).join("");
+    })();
+  </script>
+</body>
+</html>
