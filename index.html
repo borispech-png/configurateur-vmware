@@ -117,6 +117,7 @@
       <button class="secondary expert-only" id="tcoAdvBtn" type="button" title="Calculateur TCO/ROI avancé sur 3-5 ans">&#128202; TCO Avancé</button>
       <button class="secondary expert-only" id="objectionBtn" type="button" title="Générateur IA de réponses aux objections clients">&#128172; Objections IA</button>
       <button class="secondary expert-only" id="pptxExportBtn" type="button" title="Export PowerPoint — slides radar + matrice">&#127912; Export PPTX</button>
+      <button class="secondary expert-only" id="funcAnalysisBtn" type="button" title="Analyse fonctionnelle comparative VMware vs alternatives — scoring X×P par fonctionnalité">&#128203; Analyse Fonct.</button>
     </div>
 
     <section class="rvtools-panel" id="rvtoolsImportPanel" hidden>
@@ -2569,6 +2570,57 @@
     </div>
   </div>
 
+  <!-- ══════════════════════════════════════════════════════════════════
+       ANALYSE FONCTIONNELLE COMPARATIVE — Modal expert
+       ══════════════════════════════════════════════════════════════════ -->
+  <div id="funcAnalysisModal" class="ai-pilot-overlay" hidden role="dialog" aria-modal="true">
+    <div class="ai-pilot-box func-box">
+      <div class="ai-pilot-header">
+        <span>&#128203; Analyse Fonctionnelle Comparative VMware vs Alternatives</span>
+        <button class="ai-pilot-close" id="funcAnalysisClose" type="button">&#10005;</button>
+      </div>
+
+      <!-- ── Config bar ── -->
+      <div class="func-config-bar">
+        <div class="func-config-group">
+          <span class="func-config-label">&#127381; &Eacute;dition VMware analys&eacute;e</span>
+          <div class="func-edition-pills">
+            <label class="func-ed-pill"><input type="radio" name="funcEdition" value="std"> Standard</label>
+            <label class="func-ed-pill"><input type="radio" name="funcEdition" value="ent"> Enterprise+</label>
+            <label class="func-ed-pill"><input type="radio" name="funcEdition" value="vvf" checked> VVF</label>
+            <label class="func-ed-pill"><input type="radio" name="funcEdition" value="vcf"> VCF</label>
+          </div>
+        </div>
+        <div class="func-config-group func-config-sols">
+          <span class="func-config-label">&#128202; Solutions &agrave; comparer <small>(max 4)</small></span>
+          <div class="func-sol-pills" id="funcSolPills"><!-- JS --></div>
+        </div>
+      </div>
+
+      <!-- ── Score band ── -->
+      <div class="func-score-band" id="funcScoreBand">
+        <div class="func-band-empty">S&eacute;lectionnez des solutions et notez les fonctionnalit&eacute;s pour voir les scores.</div>
+      </div>
+
+      <!-- ── Scoring table ── -->
+      <div class="func-table-wrap" id="funcTableWrap">
+        <div class="func-table-placeholder">Configurez l&rsquo;&eacute;dition VMware et les solutions ci-dessus.</div>
+      </div>
+
+      <!-- ── Vision Long Terme ── -->
+      <div class="func-vision-section">
+        <div class="func-vision-title">&#128221; Vision Long Terme &amp; Analyse Op&eacute;rationnelle DSI</div>
+        <div class="func-vision-hint">D&eacute;crivez le sch&eacute;ma directeur, la gouvernance, les contraintes organisationnelles et les priorit&eacute;s d&rsquo;utilisation. Permet d&rsquo;ajuster les pond&eacute;rations (curseurs P) et d&rsquo;obtenir une synth&egrave;se IA argument&eacute;e.</div>
+        <textarea id="funcVisionText" rows="3" maxlength="1200" placeholder="Ex: Priorit&eacute; absolue &agrave; la souverainet&eacute; des donn&eacute;es. Le cluster vSAN actuel est critique — la fonctionnalit&eacute; de stockage logiciel est indispensable. Contraintes NIS2 sur le chiffrement des VMs. &Eacute;quipe DSI de 3 personnes, outil de monitoring int&eacute;gr&eacute; requis..."></textarea>
+        <div class="func-vision-actions">
+          <button class="secondary btn-sm" id="funcVisionAiBtn" type="button">&#10024; Synth&egrave;se IA</button>
+          <span id="funcVisionAiStatus"></span>
+        </div>
+        <div class="func-vision-ai-result" id="funcVisionAiResult" hidden></div>
+      </div>
+    </div>
+  </div>
+
   <!-- ── Export PowerPoint PPTX ── -->
   <div id="pptxModal" class="ai-pilot-overlay" hidden role="dialog" aria-modal="true">
     <div class="ai-pilot-box pptx-box">
@@ -2890,7 +2942,7 @@
         "aiPilotModal", "scenarioCompModal", "reportDecModal",
         "migrationPlanModal", "productSheetModal", "aiSettingsModal",
         "assistantPanel", "mistralChatPanel",
-        "draftsModal", "tcoAdvModal", "objectionModal", "pptxModal"
+        "draftsModal", "tcoAdvModal", "objectionModal", "pptxModal", "funcAnalysisModal"
       ];
       modals.forEach(id => {
         const el = document.getElementById(id);
@@ -15021,7 +15073,7 @@
         var expertSection = document.createElement("div");
         expertSection.className = "ai-hub-section";
         expertSection.innerHTML = '<div class="ai-hub-section-title">&#128736; Expert</div>'
-          + [["draftsBtn","&#128193; Brouillons"],["tcoAdvBtn","&#128202; TCO Avancé"],["objectionBtn","&#128172; Objections"],["pptxExportBtn","&#127912; PPTX"]].map(function(p) {
+          + [["draftsBtn","&#128193; Brouillons"],["tcoAdvBtn","&#128202; TCO Avancé"],["objectionBtn","&#128172; Objections"],["pptxExportBtn","&#127912; PPTX"],["funcAnalysisBtn","&#128203; Analyse Fonct."]].map(function(p) {
               return '<button class="ai-hub-item" data-target="' + p[0] + '" type="button">' + p[1] + '</button>';
             }).join("");
         hubContent.parentNode.appendChild(expertSection);
@@ -16226,6 +16278,300 @@
     // ── Phase 5 — Expert Mode ────────────────────────────────────
     // Les modules sont toujours initialisés (handlers liés, modaux cachés par CSS expert-only)
     // Le flag window._expertMode contrôle uniquement la visibilité CSS et l'AI Hub section
+    // ============================================================
+    //  ANALYSE FONCTIONNELLE COMPARATIVE — Phase 5 module 5
+    // ============================================================
+    function initFuncAnalysis() {
+      window._vmLog && window._vmLog.init("FuncAnalysis", "Initialisation Analyse Fonctionnelle Comparative");
+
+      // ── Feature database ─────────────────────────────────────────
+      // [id, catégorie, nom, {std, ent, vvf, vcf}]  — editions = 1 si inclus
+      var FEAT = [
+        // Virtualisation & Compute
+        ["esxi",        "Virtualisation", "Hyperviseur ESXi",                   {std:1,ent:1,vvf:1,vcf:1}],
+        ["vcenter",     "Virtualisation", "vCenter Server (gestion centralisée)", {std:1,ent:1,vvf:1,vcf:1}],
+        ["vmotion",     "Virtualisation", "vMotion — migration VM à chaud",      {std:1,ent:1,vvf:1,vcf:1}],
+        ["storvmotion", "Virtualisation", "Storage vMotion",                     {std:1,ent:1,vvf:1,vcf:1}],
+        ["drs",         "Virtualisation", "DRS — équilibrage de charge auto",    {std:0,ent:1,vvf:1,vcf:1}],
+        ["ha",          "Virtualisation", "High Availability (HA)",               {std:1,ent:1,vvf:1,vcf:1}],
+        ["ft",          "Virtualisation", "Fault Tolerance (FT)",                {std:0,ent:1,vvf:1,vcf:1}],
+        ["replication", "Virtualisation", "vSphere Replication",                 {std:1,ent:1,vvf:1,vcf:1}],
+        ["tkg",         "Virtualisation", "Kubernetes / Tanzu (TKG)",            {std:0,ent:1,vvf:1,vcf:1}],
+        // Stockage
+        ["vsan",        "Stockage",       "vSAN — stockage logiciel HCI",        {std:0,ent:0,vvf:1,vcf:1}],
+        ["vvol",        "Stockage",       "Virtual Volumes (VVol)",              {std:0,ent:1,vvf:1,vcf:1}],
+        ["spbm",        "Stockage",       "Storage Policy Based Mgmt (SPBM)",    {std:0,ent:1,vvf:1,vcf:1}],
+        ["stretch",     "Stockage",       "Stretched Cluster (réplication bi-site)", {std:0,ent:0,vvf:1,vcf:1}],
+        ["nvme",        "Stockage",       "vSAN ESA / NVMe-oF",                  {std:0,ent:0,vvf:1,vcf:1}],
+        // Réseau
+        ["vss",         "Réseau",         "vSwitch Standard (vSS)",              {std:1,ent:1,vvf:1,vcf:1}],
+        ["vds",         "Réseau",         "vSwitch Distribué (vDS)",             {std:0,ent:1,vvf:1,vcf:1}],
+        ["netio",       "Réseau",         "Network I/O Control",                 {std:0,ent:1,vvf:1,vcf:1}],
+        ["nsx",         "Réseau",         "NSX overlay / micro-segmentation",    {std:0,ent:0,vvf:0,vcf:1}],
+        ["nsxfw",       "Réseau",         "NSX Distributed Firewall",            {std:0,ent:0,vvf:0,vcf:1}],
+        // Sécurité
+        ["vmencrypt",   "Sécurité",       "VM Encryption (chiffrement at rest)", {std:0,ent:1,vvf:1,vcf:1}],
+        ["tpm",         "Sécurité",       "TPM 2.0 / Secure Boot",               {std:1,ent:1,vvf:1,vcf:1}],
+        ["rbac",        "Sécurité",       "RBAC multi-niveaux",                  {std:1,ent:1,vvf:1,vcf:1}],
+        ["idsips",      "Sécurité",       "IDS/IPS & Prévention malware",        {std:0,ent:0,vvf:0,vcf:0}],
+        // Management & Automatisation
+        ["ariaops",     "Management",     "Aria Operations (monitoring)",        {std:0,ent:0,vvf:1,vcf:1}],
+        ["ariaaut",     "Management",     "Aria Automation (orchestration)",     {std:0,ent:0,vvf:0,vcf:1}],
+        ["arialogs",    "Management",     "Aria Operations for Logs",            {std:0,ent:0,vvf:1,vcf:1}],
+        ["lcm",         "Management",     "vSphere Lifecycle Manager (LCM)",     {std:1,ent:1,vvf:1,vcf:1}],
+        ["contentlib",  "Management",     "Content Library",                     {std:1,ent:1,vvf:1,vcf:1}],
+        // Plateforme
+        ["sddc",        "Plateforme",     "SDDC Manager (orchestration infra)",  {std:0,ent:0,vvf:0,vcf:1}],
+        ["workload",    "Plateforme",     "Workload Management (Supervisor)",    {std:0,ent:0,vvf:1,vcf:1}],
+        // Conformité & Gouvernance
+        ["compliance",  "Conformité",     "Conformité CIS / STIG",               {std:0,ent:1,vvf:1,vcf:1}],
+        ["audit",       "Conformité",     "Audit Logging avancé",                {std:0,ent:1,vvf:1,vcf:1}],
+        ["kms",         "Conformité",     "Key Management Server (KMS)",         {std:0,ent:1,vvf:1,vcf:1}],
+      ];
+
+      var SOLS = [
+        {id:"proxmox",   name:"Proxmox VE"},
+        {id:"nutanix",   name:"Nutanix AHV"},
+        {id:"openstack", name:"OpenStack"},
+        {id:"hyperv",    name:"Hyper-V / Azure HCI"},
+        {id:"hpe_vme",   name:"HPE VME / Morpheus"},
+        {id:"xcpng",     name:"XCP-ng / XenServer"},
+        {id:"oracle",    name:"Oracle VM"},
+      ];
+
+      // P values per cursor position 1-5
+      var W_TO_P = [0, 0.8, 0.9, 1.0, 1.1, 1.2];
+
+      var state = {
+        edition:   "vvf",
+        solutions: ["proxmox", "nutanix", "xcpng"],
+        weights:   {},  // fid → 1-5  (default 3 = neutral = P 1.0)
+        scores:    {},  // "fid||sid" → 1-5
+      };
+
+      // ── DOM ───────────────────────────────────────────────────────
+      var modal     = document.getElementById("funcAnalysisModal");
+      var openBtn   = document.getElementById("funcAnalysisBtn");
+      var closeBtn  = document.getElementById("funcAnalysisClose");
+      var tableWrap = document.getElementById("funcTableWrap");
+      var scoreBand = document.getElementById("funcScoreBand");
+      var visionTx  = document.getElementById("funcVisionText");
+      var aiBtn     = document.getElementById("funcVisionAiBtn");
+      var aiStatus  = document.getElementById("funcVisionAiStatus");
+      var aiResult  = document.getElementById("funcVisionAiResult");
+      if (!modal || !openBtn) return;
+
+      // ── Helpers ───────────────────────────────────────────────────
+      function getW(fid) { return state.weights[fid] || 3; }
+      function getX(fid, sid) { return state.scores[fid + "||" + sid] || 0; }
+      function getP(fid) { return W_TO_P[getW(fid)]; }
+      function fmt(v) { return v.toFixed(1); }
+
+      function dotHtml(val, max, cls, attrs) {
+        var h = '<span class="func-dots ' + cls + '" ' + attrs + ' tabindex="0">';
+        for (var i = 1; i <= max; i++) {
+          h += '<span class="func-dot' + (i <= val ? ' on' : '') + '" data-i="' + i + '"></span>';
+        }
+        return h + '</span>';
+      }
+
+      // ── Solution pills ────────────────────────────────────────────
+      function renderSolPills() {
+        var wrap = document.getElementById("funcSolPills");
+        if (!wrap) return;
+        wrap.innerHTML = SOLS.map(function(s) {
+          var on = state.solutions.indexOf(s.id) !== -1;
+          return '<label class="func-sol-pill' + (on ? ' active' : '') + '">' +
+            '<input type="checkbox" value="' + s.id + '"' + (on ? ' checked' : '') + '> ' + s.name + '</label>';
+        }).join("");
+        wrap.querySelectorAll("input[type=checkbox]").forEach(function(cb) {
+          cb.addEventListener("change", function() {
+            var sid = cb.value;
+            var idx = state.solutions.indexOf(sid);
+            if (cb.checked) {
+              if (state.solutions.length >= 4) { cb.checked = false; return; }
+              state.solutions.push(sid);
+            } else {
+              if (idx !== -1) state.solutions.splice(idx, 1);
+            }
+            cb.closest("label").classList.toggle("active", cb.checked);
+            renderTable(); renderScoreBand();
+          });
+        });
+      }
+
+      // ── Main table ────────────────────────────────────────────────
+      function renderTable() {
+        if (!tableWrap) return;
+        var ed   = state.edition;
+        var feat = FEAT.filter(function(f) { return f[3][ed]; });
+        var sols = SOLS.filter(function(s) { return state.solutions.indexOf(s.id) !== -1; });
+        if (!sols.length) {
+          tableWrap.innerHTML = '<div class="func-table-placeholder">Sélectionnez au moins une solution ci-dessus.</div>';
+          return;
+        }
+
+        // Header
+        var h = '<thead><tr class="func-hdr-row">'
+          + '<th class="func-th-feat">Fonctionnalité</th>'
+          + '<th class="func-th-pond" title="Pondération importance (P : 0.8 à 1.2)">Pond. P<br><small style="font-weight:400;opacity:.8">curseur violet</small></th>';
+        sols.forEach(function(s) {
+          h += '<th class="func-th-sol" colspan="2">' + s.name + '</th>';
+        });
+        h += '</tr><tr class="func-subhdr-row"><td></td><td></td>';
+        sols.forEach(function() { h += '<td>Score X (1-5)</td><td>X × P</td>'; });
+        h += '</tr></thead><tbody>';
+
+        // Rows
+        var lastCat = null;
+        feat.forEach(function(f) {
+          var fid = f[0]; var cat = f[1]; var fname = f[2];
+          if (cat !== lastCat) {
+            lastCat = cat;
+            h += '<tr class="func-cat-row"><td colspan="' + (2 + sols.length * 2) + '">' + cat + '</td></tr>';
+          }
+          var w = getW(fid); var p = W_TO_P[w];
+          h += '<tr class="func-feat-row" data-fid="' + fid + '">';
+          h += '<td class="func-td-feat">' + fname + '</td>';
+          h += '<td class="func-td-pond">'
+            + dotHtml(w, 5, "func-dots-weight", 'data-fid="' + fid + '" data-type="w"')
+            + '<span class="func-p-val">P=' + p.toFixed(1) + '</span></td>';
+          sols.forEach(function(s) {
+            var x  = getX(fid, s.id);
+            var xp = x > 0 ? x * p : 0;
+            var xpCls = x > 0 ? (xp >= 4 ? ' xp-high' : xp >= 2.5 ? ' xp-mid' : ' xp-low') : '';
+            h += '<td class="func-td-x">'
+              + dotHtml(x, 5, "func-dots-score", 'data-fid="' + fid + '" data-sid="' + s.id + '" data-type="x"')
+              + '</td>';
+            h += '<td class="func-td-xp' + xpCls + '">' + (x > 0 ? fmt(xp) : '—') + '</td>';
+          });
+          h += '</tr>';
+        });
+
+        // Totals
+        h += '<tr class="func-total-row"><td class="func-total-label" colspan="2">Score total Y = &Sigma;(X &times; P)</td>';
+        sols.forEach(function(s) {
+          var tot = 0, maxTot = 0;
+          feat.forEach(function(f) {
+            var x = getX(f[0], s.id); var p = W_TO_P[getW(f[0])];
+            if (x > 0) tot += x * p;
+            maxTot += p * 5;
+          });
+          var pct = maxTot > 0 ? Math.round(tot / maxTot * 100) : 0;
+          h += '<td class="func-total-val">' + fmt(tot) + '</td>'
+             + '<td class="func-total-pct">' + pct + '%&nbsp;du max</td>';
+        });
+        h += '</tr></tbody>';
+
+        tableWrap.innerHTML = '<table class="func-table">' + h + '</table>';
+      }
+
+      // ── Score band ────────────────────────────────────────────────
+      function renderScoreBand() {
+        if (!scoreBand) return;
+        var ed   = state.edition;
+        var feat = FEAT.filter(function(f) { return f[3][ed]; });
+        var sols = SOLS.filter(function(s) { return state.solutions.indexOf(s.id) !== -1; });
+        if (!sols.length) {
+          scoreBand.innerHTML = '<div class="func-band-empty">Sélectionnez des solutions et notez les fonctionnalités.</div>';
+          return;
+        }
+        scoreBand.innerHTML = sols.map(function(s) {
+          var tot = 0, maxTot = 0, cnt = 0;
+          feat.forEach(function(f) {
+            var x = getX(f[0], s.id); var p = W_TO_P[getW(f[0])];
+            if (x > 0) { tot += x * p; cnt++; }
+            maxTot += p * 5;
+          });
+          var pct = maxTot > 0 ? Math.round(tot / maxTot * 100) : 0;
+          var cls = pct >= 75 ? "band-high" : pct >= 50 ? "band-mid" : "band-low";
+          return '<div class="func-band-item ' + cls + '">'
+            + '<span class="func-band-name">' + s.name + '</span>'
+            + '<span><span class="func-band-score">' + fmt(tot) + '</span>'
+            + '<span class="func-band-pct"> / ' + fmt(maxTot) + ' (' + pct + '%)</span></span>'
+            + '<div class="func-band-bar"><div class="func-band-fill" style="width:' + pct + '%"></div></div>'
+            + '<span class="func-band-cnt">' + cnt + ' / ' + feat.length + ' fonctionnalités notées</span>'
+            + '</div>';
+        }).join("");
+      }
+
+      // ── Edition selector ──────────────────────────────────────────
+      modal.querySelectorAll("input[name=funcEdition]").forEach(function(inp) {
+        inp.addEventListener("change", function() {
+          state.edition = inp.value;
+          renderTable(); renderScoreBand();
+        });
+      });
+
+      // ── Dot clicks (event delegation) ─────────────────────────────
+      if (tableWrap) {
+        tableWrap.addEventListener("click", function(e) {
+          var dot = e.target.closest(".func-dot");
+          if (!dot) return;
+          var widget = dot.closest(".func-dots");
+          if (!widget) return;
+          var fid  = widget.dataset.fid;
+          var type = widget.dataset.type;
+          var i    = parseInt(dot.dataset.i);
+          if (type === "w") {
+            state.weights[fid] = (state.weights[fid] === i) ? 3 : i; // toggle reset to neutral
+          } else {
+            var key = fid + "||" + widget.dataset.sid;
+            state.scores[key] = (state.scores[key] === i) ? 0 : i; // toggle reset to 0
+          }
+          renderTable(); renderScoreBand();
+        });
+      }
+
+      // ── IA Synthesis ──────────────────────────────────────────────
+      if (aiBtn) {
+        aiBtn.addEventListener("click", function() {
+          if (!window.callMistral) { if (aiStatus) aiStatus.textContent = "Clé API requise (paramètres IA)"; return; }
+          var ed   = state.edition;
+          var feat = FEAT.filter(function(f) { return f[3][ed]; });
+          var sols = SOLS.filter(function(s) { return state.solutions.indexOf(s.id) !== -1; });
+          var summary = sols.map(function(s) {
+            var tot = 0, maxTot = 0;
+            feat.forEach(function(f) {
+              var x = getX(f[0], s.id); var p = W_TO_P[getW(f[0])];
+              if (x > 0) tot += x * p;
+              maxTot += p * 5;
+            });
+            var pct = maxTot > 0 ? Math.round(tot / maxTot * 100) : 0;
+            return s.name + " → " + fmt(tot) + " pts (" + pct + "% du max)";
+          }).join("\n");
+          var vision = visionTx ? visionTx.value.trim() : "";
+          aiBtn.disabled = true;
+          if (aiStatus) aiStatus.textContent = "Génération en cours…";
+          if (aiResult) aiResult.hidden = true;
+          window.callMistral([
+            { role: "system", content: "Tu es un expert en virtualisation et migration d'infrastructure VMware pour les collectivités et administrations françaises. Réponds en français, de manière concise et opérationnelle." },
+            { role: "user", content: "Analyse fonctionnelle comparative — édition VMware : " + ed.toUpperCase()
+              + "\n\nScores de reprise fonctionnelle (Y = Σ X×P) :\n" + summary
+              + "\n\nVision long terme du client :\n" + (vision || "(non renseignée)")
+              + "\n\nGénère une synthèse de 6 à 10 lignes : solution la plus adaptée, points forts, risques fonctionnels, recommandation argumentée." }
+          ], 500).then(function(resp) {
+            aiBtn.disabled = false;
+            if (aiStatus) aiStatus.textContent = "";
+            if (aiResult) { aiResult.hidden = false; aiResult.innerHTML = resp.replace(/\n/g, "<br>"); }
+          }).catch(function(err) {
+            aiBtn.disabled = false;
+            if (aiStatus) aiStatus.textContent = "Erreur : " + (err.message || err);
+          });
+        });
+      }
+
+      // ── Open / close ──────────────────────────────────────────────
+      openBtn.addEventListener("click", function() {
+        modal.hidden = false;
+        renderSolPills();
+        renderTable();
+        renderScoreBand();
+      });
+      if (closeBtn) closeBtn.addEventListener("click", function() { modal.hidden = true; });
+      modal.addEventListener("click", function(e) { if (e.target === modal) modal.hidden = true; });
+    }
+
     window._expertMode = window._expertMode || false;
     initVmwContextBlock();
     initPhasePanelCollapses();
@@ -16233,6 +16579,7 @@
     initTcoAdvanced();
     initObjectionGenerator();
     initPptxExport();
+    initFuncAnalysis();
     initExpertMode(); // doit être appelé APRÈS les autres pour l'AI Hub injection
     window._vmLog && window._vmLog.ok("BOOT", "Application VMware Configurateur entièrement initialisée — " + new Date().toLocaleTimeString());
   </script>
