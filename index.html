@@ -840,6 +840,62 @@
             <!-- Step 1 -->
             <div class="form-step-block active" data-form-step="1">
               <h2>1. Profil organisation</h2>
+
+              <!-- ── Contexte VMware existant — entonnoir ────────── -->
+              <div class="vmw-context-block expert-only">
+                <div class="vmw-context-title">&#128272; Contexte VMware existant</div>
+                <div class="vmw-funnel">
+                  <!-- Étape 1 : Version -->
+                  <div class="vmw-funnel-step" id="vmwStep1">
+                    <div class="vmw-funnel-num">①</div>
+                    <div class="field">
+                      <label for="vmwVersion">Version VMware <span class="help-tip" title="Version VMware actuellement deployee en production. Détermine l'urgence et les options de migration disponibles.">?</span></label>
+                      <select id="vmwVersion" data-step="1">
+                        <option value="">— Selectionner —</option>
+                        <option value="vsphere6">vSphere 6.x</option>
+                        <option value="vsphere7">vSphere 7.x</option>
+                        <option value="vsphere8">vSphere 8.x</option>
+                        <option value="vsphere9">vSphere 9.x</option>
+                      </select>
+                    </div>
+                  </div>
+                  <span class="vmw-funnel-arrow">&#8594;</span>
+                  <!-- Étape 2 : Mode de licencing -->
+                  <div class="vmw-funnel-step" id="vmwStep2">
+                    <div class="vmw-funnel-num">②</div>
+                    <div class="field">
+                      <label for="vmwLicensing">Mode de licencing <span class="help-tip" title="Type de contrat en vigueur pour votre version VMware. Se complète après sélection de la version.">?</span></label>
+                      <select id="vmwLicensing" data-step="1" disabled>
+                        <option value="">— Sélectionner la version d'abord —</option>
+                      </select>
+                    </div>
+                  </div>
+                  <span class="vmw-funnel-arrow">&#8594;</span>
+                  <!-- Étape 3 : Édition -->
+                  <div class="vmw-funnel-step" id="vmwStep3">
+                    <div class="vmw-funnel-num">③</div>
+                    <div class="field">
+                      <label for="vmwEdition">Édition <span class="help-tip" title="Édition précise de votre licence VMware. Détermine les fonctionnalités à remplacer lors de la migration.">?</span></label>
+                      <select id="vmwEdition" data-step="1" disabled>
+                        <option value="">— Sélectionner le licencing d'abord —</option>
+                      </select>
+                    </div>
+                  </div>
+                  <span class="vmw-funnel-arrow">&#8594;</span>
+                  <!-- Étape 4 : Date d'échéance -->
+                  <div class="vmw-funnel-step" id="vmwStep4">
+                    <div class="vmw-funnel-num">④</div>
+                    <div class="field">
+                      <label for="vmwRenewal">Date d'échéance <span class="help-tip" title="Date de fin de contrat ou de renouvellement. Rappel : fin de support vSphere 8 = 27/10/2027.">?</span></label>
+                      <input type="date" id="vmwRenewal" data-step="1" placeholder="jj/mm/aaaa">
+                      <div class="vmw-renewal-hint" id="vmwRenewalHint"></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="vmw-context-alerts" id="vmwContextAlerts" hidden></div>
+              </div>
+              <hr class="vmw-context-sep expert-only">
+
               <div class="grid-3">
                 <div class="field">
                   <label for="orgType">Type d'organisation <span class="help-tip" title="Collectivite: communes, departements, regions. Ministere: administrations centrales. Sante: etablissements hospitaliers (CHU, CH). Social: services sociaux et medico-sociaux.">?</span></label>
@@ -1331,7 +1387,7 @@
           </div>
 
         </div>
-        <aside class="live-summary" id="liveSummary">
+        <aside class="live-summary expert-only" id="liveSummary">
           <h3>Resume live</h3>
           <div class="summary-lines">
             <div><strong>Profil:</strong> <span id="liveOrgType">Collectivite</span></div>
@@ -3225,7 +3281,12 @@
         ramSaturation: Number(getValue("ramSaturation") || 0),
         useVeeam: getChecked("useVeeam"),
         veeamLevel: getValue("veeamLevel") || "basique",
-        vmwareCliff: getChecked("vmwareCliff")
+        vmwareCliff: getChecked("vmwareCliff"),
+        vmwVersion:        getValue("vmwVersion")  || "",
+        vmwLicensing:      getValue("vmwLicensing") || "",
+        vmwEdition:        getValue("vmwEdition")   || "",
+        vmwRenewal:        getValue("vmwRenewal")   || "",
+        vmwRenewalUrgency: vmwRenewalUrgency(getValue("vmwRenewal") || "")
       };
     }
 
@@ -3419,7 +3480,7 @@
         network: network,
         usableTB: usableTB,
         archType: solution.archType || "both",
-        note: "Estimation indicative — affiner avec export RVTools et dimensionnement constructeur."
+        note: "Estimation indicative — affiner avec export RVTools et dimensionnement Intégrateur SCC."
       };
     }
 
@@ -3556,6 +3617,62 @@
       if (!compliance.pass && solution.baseline.security <= 8) impacts.push({ rule: "non-conformite pack", delta: -0.05 });
       if (answers.vmCount > 800 && solution.name === "OpenStack + KVM" && opsCapacity < 7) impacts.push({ rule: "echelle >800 VM", delta: -0.08 });
       if (answers.vmCount > 1000 && solution.name === "Proxmox VE") impacts.push({ rule: "tres grande echelle", delta: -0.05 });
+
+      // ── Règles contexte VMware existant ──────────────────────────────
+      const vmwV = answers.vmwVersion || "";
+      const vmwL = answers.vmwLicensing || "";
+      const vmwR = answers.vmwRenewalUrgency || "";
+      const isVmwareSol = solution.name === "VMware (reference)" || solution.name === "HPE VME / Morpheus";
+      const isOpenSource = solution.name === "Proxmox VE" || solution.name === "XCP-ng + XOSTOR";
+
+      // Version 6.x EOSL → urgence maximale, open-source favorisé
+      if (vmwV === "vsphere6" && isOpenSource) impacts.push({ rule: "vSphere 6 EOSL — migration urgente vers open-source", delta: 0.07 });
+      if (vmwV === "vsphere6" && solution.name === "Nutanix AHV") impacts.push({ rule: "vSphere 6 EOSL — AHV migration compatible", delta: 0.05 });
+      if (vmwV === "vsphere6" && solution.name === "HPE VME / Morpheus") impacts.push({ rule: "vSphere 6 EOSL — HPE VME surcoût injustifié en urgence", delta: -0.07 });
+
+      // Version 7.x fin de support annoncée
+      if (vmwV === "vsphere7" && isOpenSource) impacts.push({ rule: "vSphere 7 fin support — open-source renforcé", delta: 0.04 });
+      if (vmwV === "vsphere7" && solution.name === "Nutanix AHV") impacts.push({ rule: "vSphere 7 fin support — AHV compatible", delta: 0.04 });
+
+      // Edition VCF (vSphere 8.x souscription) → alternatives enterprise
+      const vmwEd = answers.vmwEdition || "";
+      const isVcfEdition = vmwEd.startsWith("vcf");
+      if (isVcfEdition && (solution.name === "Nutanix AHV" || solution.name === "OpenStack + KVM")) impacts.push({ rule: "migration VCF vers alternative enterprise", delta: 0.06 });
+      if (isVcfEdition && solution.name === "HPE VME / Morpheus") impacts.push({ rule: "HPE VME ne remplace pas VCF feature parity", delta: -0.05 });
+
+      // Edition Essentials (legacy) → solutions légères
+      const isEssEdition = vmwEd === "ess-kit" || vmwEd === "ess-plus";
+      if (isEssEdition && isOpenSource) impacts.push({ rule: "profil Essentials — TCO open-source équivalent", delta: 0.06 });
+      if (isEssEdition && solution.name === "Nutanix AHV") impacts.push({ rule: "Nutanix surdimensionné pour profil Essentials", delta: -0.04 });
+
+      // vSphere 9.x → toujours souscription, signal modernisation
+      if (vmwV === "vsphere9" && (solution.name === "Nutanix AHV" || isOpenSource)) impacts.push({ rule: "vSphere 9 souscription — ROI alternatives renforcé", delta: 0.04 });
+
+      // Licence SnS expiré → urgence exit
+      if (vmwL === "perp-sns-expire" && isOpenSource) impacts.push({ rule: "SnS expiré — exit urgent, open-source prioritaire", delta: 0.07 });
+      if (vmwL === "perp-sns-expire" && solution.name === "Nutanix AHV") impacts.push({ rule: "SnS expiré — AHV migration rapide", delta: 0.05 });
+      if (vmwL === "perp-sns-expire" && solution.name === "HPE VME / Morpheus") impacts.push({ rule: "SnS expiré — HPE VME coût non justifié en urgence", delta: -0.08 });
+
+      // Souscription Broadcom → ROI alternatives
+      if (vmwL === "subscription" && (solution.name === "Nutanix AHV" || solution.name === "OpenStack + KVM")) impacts.push({ rule: "souscription Broadcom — ROI alternatives renforcé", delta: 0.05 });
+      if (vmwL === "subscription" && solution.name === "VMware (reference)") impacts.push({ rule: "souscription Broadcom — maintien coûteux", delta: -0.08 });
+
+      // OEM HPE → continuité HPE VME
+      if (vmwL === "oem-hpe" && solution.name === "HPE VME / Morpheus") impacts.push({ rule: "OEM HPE — continuité contrat naturelle", delta: 0.09 });
+
+      // OEM Dell VxRail → Nutanix AHV meilleur remplacement HCI
+      if (vmwL === "oem-dell-vxrail" && solution.name === "Nutanix AHV") impacts.push({ rule: "VxRail — Nutanix AHV remplacement HCI optimal", delta: 0.08 });
+      if (vmwL === "oem-dell-vxrail" && solution.name === "HPE VME / Morpheus") impacts.push({ rule: "VxRail — HPE VME migration complexe inter-OEM", delta: -0.06 });
+      if (vmwL === "oem-dell-vxrail" && isOpenSource) impacts.push({ rule: "VxRail — découplage matériel préalable requis", delta: -0.03 });
+
+      // Échéance < 6 mois → vitesse déterminante
+      if (vmwR === "lt6" && solution.baseline.speed < 7) impacts.push({ rule: "echeance critique <6 mois — vitesse migration insuffisante", delta: -0.09 });
+      if (vmwR === "lt6" && solution.name === "Nutanix AHV") impacts.push({ rule: "echeance critique <6 mois — AHV migration rapide", delta: 0.06 });
+      if (vmwR === "lt6" && isOpenSource && solution.baseline.speed >= 7) impacts.push({ rule: "echeance critique <6 mois — open-source viable", delta: 0.04 });
+
+      // Aucun renouvellement prévu (SnS orphelin)
+      if (vmwR === "none" && isOpenSource) impacts.push({ rule: "SnS orphelin — open-source TCO optimal", delta: 0.05 });
+      if (vmwR === "none" && !isVmwareSol && solution.baseline.cost >= 7) impacts.push({ rule: "SnS orphelin — reduction cout prioritaire", delta: 0.03 });
 
       const totalDelta = impacts.reduce((acc, i) => acc + i.delta, 0);
       const multiplier = clamp(1 + totalDelta, 0.58, 1.24);
@@ -4158,6 +4275,296 @@
       document.getElementById("govReviewDate").value = payload.reviewDate || "";
       document.getElementById("govNotes").value = payload.notes || "";
       document.getElementById("phase1GovStatus").textContent = "Referentiel recharge (derniere sauvegarde: " + new Date(payload.savedAt).toLocaleString("fr-FR") + ")";
+    }
+
+    // ── Alertes contextuelles VMware existant ──────────────────────
+    // ── Données entonnoir VMware (version → licencing → éditions) ────
+    // ── Données entonnoir — éditions conformes avant/après Broadcom ──
+    // AVANT Broadcom (nov. 2023) : modèle perpétuel par socket CPU
+    // APRÈS Broadcom (2024+)     : souscription par core (min 16 cores/CPU)
+    //   → Nouvelles offres : VVF (vSphere+vSAN+Aria), VCF (stack complet +NSX)
+    //   → Supprimés : Enterprise Plus standalone, Essentials, ROBO, vCenter standalone
+    var VMW_FUNNEL = {
+      // ── vSphere 6.x — EOSL (avant Broadcom, perpétuel uniquement) ──
+      vsphere6: {
+        licensing: [
+          { value: "perp-sns-actif",  label: "Perpétuel — SnS actif" },
+          { value: "perp-sns-expire", label: "Perpétuel — SnS expiré / orphelin" }
+        ],
+        editions: {
+          "perp-sns-actif": [
+            { value:"std",       label:"vSphere Standard" },
+            { value:"ent-plus",  label:"vSphere Enterprise Plus" },
+            { value:"ess-kit",   label:"vSphere Essentials Kit (≤ 3 hôtes / ≤ 96 GB RAM)" },
+            { value:"ess-plus",  label:"vSphere Essentials Plus Kit (≤ 3 hôtes)" },
+            { value:"robo-std",  label:"vSphere ROBO Standard (succursales)" },
+            { value:"robo-adv",  label:"vSphere ROBO Advanced (succursales)" }
+          ],
+          "perp-sns-expire": [
+            { value:"std",       label:"vSphere Standard" },
+            { value:"ent-plus",  label:"vSphere Enterprise Plus" },
+            { value:"ess-kit",   label:"vSphere Essentials Kit" },
+            { value:"ess-plus",  label:"vSphere Essentials Plus Kit" },
+            { value:"robo-std",  label:"vSphere ROBO Standard" },
+            { value:"robo-adv",  label:"vSphere ROBO Advanced" }
+          ]
+        }
+      },
+      // ── vSphere 7.x — transition perpétuel / début souscription ──
+      vsphere7: {
+        licensing: [
+          { value: "perp-sns-actif",  label: "Perpétuel — SnS actif" },
+          { value: "perp-sns-expire", label: "Perpétuel — SnS expiré / orphelin" },
+          { value: "subscription",    label: "Souscription Broadcom (disponible depuis v7)" }
+        ],
+        editions: {
+          "perp-sns-actif": [
+            { value:"std",       label:"vSphere Standard" },
+            { value:"ent-plus",  label:"vSphere Enterprise Plus" },
+            { value:"ess-kit",   label:"vSphere Essentials Kit (≤ 3 hôtes)" },
+            { value:"ess-plus",  label:"vSphere Essentials Plus Kit (≤ 3 hôtes)" },
+            { value:"robo-std",  label:"vSphere ROBO Standard" },
+            { value:"robo-adv",  label:"vSphere ROBO Advanced" },
+            { value:"desktop",   label:"vSphere Desktop (usage VDI uniquement)" }
+          ],
+          "perp-sns-expire": [
+            { value:"std",       label:"vSphere Standard" },
+            { value:"ent-plus",  label:"vSphere Enterprise Plus" },
+            { value:"ess-kit",   label:"vSphere Essentials Kit" },
+            { value:"ess-plus",  label:"vSphere Essentials Plus Kit" },
+            { value:"robo-std",  label:"vSphere ROBO Standard" },
+            { value:"robo-adv",  label:"vSphere ROBO Advanced" }
+          ],
+          "subscription": [
+            { value:"std",      label:"vSphere Standard (souscription)" },
+            { value:"ent-plus", label:"vSphere Enterprise Plus (souscription)" }
+          ]
+        }
+      },
+      // ── vSphere 8.x / VVF — nouvelle gamme Broadcom 2024 ──
+      // Enterprise Plus standalone → supprimé, remplacé par VVF
+      // Essentials, ROBO → supprimés
+      vsphere8: {
+        licensing: [
+          { value: "subscription",    label: "Souscription Broadcom (par core, min 16/CPU)" },
+          { value: "perp-sns-actif",  label: "Perpétuel legacy — SnS actif (stock existant)" },
+          { value: "oem-hpe",         label: "Bundle OEM HPE (SimpliVity / ProLiant)" },
+          { value: "oem-dell-vxrail", label: "Bundle OEM Dell — VxRail (HCI natif Dell+VMware)" }
+        ],
+        editions: {
+          "subscription": [
+            { value:"std",     label:"vSphere Standard" },
+            { value:"ent-plus",label:"vSphere Enterprise+" },
+            { value:"vvf",     label:"VMware vSphere Foundation (VVF)" },
+            { value:"vcf",     label:"VMware Cloud Foundation (VCF)" }
+          ],
+          "perp-sns-actif": [
+            { value:"std",      label:"vSphere Standard (legacy perpétuel)" },
+            { value:"ent-plus", label:"vSphere Enterprise Plus (legacy perpétuel — plus commercialisé)" }
+          ],
+          "oem-hpe": [
+            { value:"hpe-simplivity",  label:"HPE SimpliVity (vSphere HCI intégré)" },
+            { value:"hpe-proliant-oe", label:"HPE ProLiant OEM Edition" }
+          ],
+          "oem-dell-vxrail": [
+            { value:"vxrail-std", label:"VxRail Standard (vSphere Standard + vSAN)" },
+            { value:"vxrail-adv", label:"VxRail Advanced (vSphere Ent+ + vSAN Advanced)" },
+            { value:"vxrail-ent", label:"VxRail Enterprise (VCF intégré)" }
+          ]
+        }
+      },
+      // ── VMware Cloud Foundation standalone ──
+      vcf: {
+        licensing: [
+          { value: "subscription", label: "Souscription Broadcom (obligatoire)" }
+        ],
+        editions: {
+          "subscription": [
+            { value:"vcf-std", label:"VCF Standard — vSphere + vSAN + NSX + vCenter" },
+            { value:"vcf-adv", label:"VCF Advanced — Std + Aria Operations" },
+            { value:"vcf-ent", label:"VCF Enterprise — Adv + Tanzu / IA / HSS" }
+          ]
+        }
+      },
+      // ── vSphere 9.x — annoncé 2025, souscription par core ──
+      vsphere9: {
+        licensing: [
+          { value: "subscription", label: "Souscription Broadcom (par core)" }
+        ],
+        editions: {
+          "subscription": [
+            { value:"vvf", label:"VMware vSphere Foundation (VVF)" },
+            { value:"vcf", label:"VMware Cloud Foundation (VCF)" }
+          ]
+        }
+      },
+      // ── vSphere Essentials (avant Broadcom uniquement — discontinué en 2024) ──
+      essentials: {
+        licensing: [
+          { value: "perp-sns-actif",  label: "Perpétuel — SnS actif" },
+          { value: "perp-sns-expire", label: "Perpétuel — SnS expiré / orphelin" }
+        ],
+        editions: {
+          "perp-sns-actif": [
+            { value:"ess-kit",  label:"vSphere Essentials Kit (≤ 3 hôtes, ≤ 96 GB RAM/hôte)" },
+            { value:"ess-plus", label:"vSphere Essentials Plus Kit (vMotion + HA + Data Recovery)" }
+          ],
+          "perp-sns-expire": [
+            { value:"ess-kit",  label:"vSphere Essentials Kit" },
+            { value:"ess-plus", label:"vSphere Essentials Plus Kit" }
+          ]
+        }
+      },
+      // ── Non déterminé ──
+      unknown: {
+        licensing: [{ value:"unknown", label:"Non connu" }],
+        editions:  { "unknown": [{ value:"unknown", label:"Non déterminé" }] }
+      }
+    };
+
+    // ── Calcule l'urgence à partir d'une date ISO ─────────────────────
+    function vmwRenewalUrgency(dateStr) {
+      if (!dateStr) return "";
+      var diff = (new Date(dateStr) - new Date()) / (1000 * 60 * 60 * 24 * 30);
+      if (diff < 0)  return "expired";
+      if (diff < 6)  return "lt6";
+      if (diff < 12) return "6to12";
+      if (diff < 24) return "1to2y";
+      return "gt2y";
+    }
+
+    // ── Alertes contextuelles ────────────────────────────────────────
+    function updateVmwContextAlerts() {
+      var version   = (document.getElementById("vmwVersion")  || {}).value || "";
+      var licensing = (document.getElementById("vmwLicensing") || {}).value || "";
+      var dateVal   = (document.getElementById("vmwRenewal")  || {}).value || "";
+      var alertsDiv = document.getElementById("vmwContextAlerts");
+      var hintEl    = document.getElementById("vmwRenewalHint");
+      if (!alertsDiv) return;
+
+      var urgency = vmwRenewalUrgency(dateVal);
+      var alerts  = [];
+
+      // Hint sous la date
+      if (hintEl) {
+        var hintMap = { expired:"Contrat expiré !", lt6:"Urgence — moins de 6 mois", "6to12":"Fenêtre idéale de décision", "1to2y":"Planification structurée possible", gt2y:"Horizon confortable" };
+        var hintClass = { expired:"hint-danger", lt6:"hint-danger", "6to12":"hint-warning", "1to2y":"hint-ok", gt2y:"hint-ok" };
+        hintEl.textContent = hintMap[urgency] || "";
+        hintEl.className   = "vmw-renewal-hint " + (hintClass[urgency] || "");
+      }
+
+      if (version === "vsphere6") {
+        alerts.push({ type:"danger", msg:"&#128308; vSphere 6.x est en End of Support Life (EOSL) &mdash; failles non corrig&eacute;es, incompatibilit&eacute; mat&eacute;riel r&eacute;cent. Migration en urgence." });
+      }
+      if (version === "vsphere7") {
+        alerts.push({ type:"warning", msg:"&#128992; vSphere 7.x &mdash; fin de support annonc&eacute;e par Broadcom. Migration &agrave; planifier dans les 12&ndash;18 mois." });
+      }
+      if (version === "vsphere8" && dateVal && new Date(dateVal) > new Date("2027-10-27")) {
+        alerts.push({ type:"warning", msg:"&#128197; Votre &eacute;ch&eacute;ance d&eacute;passe la fin de support vSphere 8 (<strong>27/10/2027</strong>) &mdash; le projet de migration doit aboutir avant cette date." });
+      }
+      if (version === "vsphere8" && !dateVal) {
+        alerts.push({ type:"warning", msg:"&#128197; Rappel : vSphere 8 atteint sa fin de support le <strong>27 octobre 2027</strong>." });
+      }
+      if (licensing === "perp-sns-expire") {
+        alerts.push({ type:"danger", msg:"&#9888; SnS expir&eacute; &mdash; environnement non couvert. Isolation r&eacute;seau recommand&eacute;e, migration en urgence." });
+      }
+      if (licensing === "oem-dell-vxrail") {
+        alerts.push({ type:"info", msg:"&#8505; VxRail impose un couplage mat&eacute;riel/logiciel fort &mdash; privil&eacute;gier une migration HCI-to-HCI (Nutanix AHV) ou pr&eacute;voir une phase de d&eacute;couplage." });
+      }
+      if (licensing === "unknown") {
+        alerts.push({ type:"warning", msg:"&#9888; Sans qualification du contrat, l'analyse de trajectoire est indicative uniquement." });
+      }
+      if (urgency === "expired") {
+        alerts.push({ type:"danger", msg:"&#128308; La date d'&eacute;ch&eacute;ance est d&eacute;pass&eacute;e &mdash; votre contrat est expir&eacute;. Action imm&eacute;diate requise." });
+      }
+      if (urgency === "lt6") {
+        alerts.push({ type:"danger", msg:"&#9203; &Eacute;ch&eacute;ance dans moins de 6 mois &mdash; urgence critique. Prioriser une trajectoire &agrave; d&eacute;ploiement rapide." });
+      }
+
+      // VCF + souscription + urgence critique → ajustement horizon automatique
+      if (licensing === "subscription" && version === "vcf" && (urgency === "lt6" || urgency === "expired")) {
+        var horizonEl = document.getElementById("exitHorizon");
+        if (horizonEl && Number(horizonEl.value) > 12) {
+          horizonEl.value = "12";
+          horizonEl.dispatchEvent(new Event("change"));
+          alerts.push({ type:"info", msg:"&#8505; Horizon de migration ajust&eacute; automatiquement &agrave; 12 mois (VCF + &eacute;ch&eacute;ance imminente)." });
+        }
+      }
+
+      if (alerts.length === 0) { alertsDiv.hidden = true; alertsDiv.innerHTML = ""; return; }
+      alertsDiv.hidden = false;
+      alertsDiv.innerHTML = alerts.map(function(a) {
+        return '<div class="vmw-alert vmw-alert-' + a.type + '">' + a.msg + '</div>';
+      }).join("");
+    }
+
+    function initVmwContextBlock() {
+      var selVersion   = document.getElementById("vmwVersion");
+      var selLicensing = document.getElementById("vmwLicensing");
+      var selEdition   = document.getElementById("vmwEdition");
+      var inputRenewal = document.getElementById("vmwRenewal");
+      if (!selVersion) return;
+
+      // Cascade Version → Licencing
+      selVersion.addEventListener("change", function() {
+        var v = selVersion.value;
+        var data = VMW_FUNNEL[v];
+        selLicensing.innerHTML = "";
+        selEdition.innerHTML   = "";
+
+        if (!data) {
+          selLicensing.innerHTML = '<option value="">— Sélectionner la version d\'abord —</option>';
+          selEdition.innerHTML   = '<option value="">— Sélectionner le licencing d\'abord —</option>';
+          selLicensing.disabled  = true;
+          selEdition.disabled    = true;
+          document.getElementById("vmwStep2").classList.remove("active");
+          document.getElementById("vmwStep3").classList.remove("active");
+        } else {
+          selLicensing.innerHTML = '<option value="">— Sélectionner —</option>'
+            + data.licensing.map(function(l) { return '<option value="' + l.value + '">' + l.label + '</option>'; }).join("");
+          selLicensing.disabled  = false;
+          selEdition.innerHTML   = '<option value="">— Sélectionner le licencing d\'abord —</option>';
+          selEdition.disabled    = true;
+          document.getElementById("vmwStep2").classList.add("active");
+          document.getElementById("vmwStep3").classList.remove("active");
+          // Auto-sélection si un seul choix (ex: VCF = souscription uniquement)
+          if (data.licensing.length === 1) {
+            selLicensing.value = data.licensing[0].value;
+            selLicensing.dispatchEvent(new Event("change"));
+          }
+        }
+        updateVmwContextAlerts();
+        document.getElementById("vmwStep4").classList.add("active");
+      });
+
+      // Cascade Licencing → Édition
+      selLicensing.addEventListener("change", function() {
+        var v = selVersion.value;
+        var l = selLicensing.value;
+        var data = VMW_FUNNEL[v];
+        selEdition.innerHTML = "";
+
+        if (!data || !l || !data.editions[l]) {
+          selEdition.innerHTML  = '<option value="">— Sélectionner le licencing d\'abord —</option>';
+          selEdition.disabled   = true;
+          document.getElementById("vmwStep3").classList.remove("active");
+        } else {
+          selEdition.innerHTML  = '<option value="">— Sélectionner —</option>'
+            + data.editions[l].map(function(e) { return '<option value="' + e.value + '">' + e.label + '</option>'; }).join("");
+          selEdition.disabled   = false;
+          document.getElementById("vmwStep3").classList.add("active");
+          if (data.editions[l].length === 1) {
+            selEdition.value = data.editions[l][0].value;
+          }
+        }
+        updateVmwContextAlerts();
+      });
+
+      // Date d'échéance → alertes en temps réel
+      if (inputRenewal) {
+        inputRenewal.addEventListener("change", updateVmwContextAlerts);
+        inputRenewal.addEventListener("input",  updateVmwContextAlerts);
+      }
     }
 
     function initPhase1() {
@@ -6520,6 +6927,12 @@
     function setGuideMode(enabled) {
       guideModeEnabled = enabled;
       document.body.classList.toggle("guide-mode", enabled);
+      // Exclusivité mutuelle : le mode guide annule le mode expert
+      if (enabled) {
+        window._expertMode = false;
+        document.body.classList.remove("expert-mode");
+        try { localStorage.removeItem("vmconfig_expert_mode"); } catch(e) {}
+      }
       var banner = document.getElementById("guideBanner");
       if (banner) banner.hidden = !enabled;
       var btn = document.getElementById("openAssistantMode");
@@ -7523,6 +7936,10 @@
       });
 
       assistantBtn.addEventListener("click", function() {
+        // Mode guidé : effacer tout trace de mode expert
+        window._expertMode = false;
+        document.body.classList.remove("expert-mode");
+        try { localStorage.removeItem("vmconfig_expert_mode"); } catch(e) {}
         /* Ouvrir l'assistant IMMEDIATEMENT (z-index 10000 couvre tout)
            puis fermer le landing en parallele — zero flash du questionnaire */
         openAssistantModal(0); // Forcer etape 0 (Intro)
@@ -9047,9 +9464,22 @@
       // Bouton sortie mode guide
       var exitGuideBtn = document.getElementById("exitGuideMode");
       if (exitGuideBtn) exitGuideBtn.addEventListener("click", function() { setGuideMode(false); });
-      // Restaurer le mode guide depuis localStorage
-      try { if (localStorage.getItem("vmconfig_guide_mode") === "1") setGuideMode(true); } catch(e) {}
-      try { if (localStorage.getItem("vmconfig_expert_mode") === "1") { window._expertMode = true; document.body.classList.add("expert-mode"); } } catch(e) {}
+      // Restaurer les modes depuis localStorage — guide ET expert sont mutuellement exclusifs
+      // Le mode guide a la priorité : s'il est actif, expert_mode est ignoré et purgé
+      try {
+        var isGuide  = localStorage.getItem("vmconfig_guide_mode")  === "1";
+        var isExpert = localStorage.getItem("vmconfig_expert_mode") === "1";
+        if (isGuide) {
+          setGuideMode(true);
+          // Purger l'état expert résiduel pour éviter tout conflit
+          window._expertMode = false;
+          document.body.classList.remove("expert-mode");
+          localStorage.removeItem("vmconfig_expert_mode");
+        } else if (isExpert) {
+          window._expertMode = true;
+          document.body.classList.add("expert-mode");
+        }
+      } catch(e) {}
       document.getElementById("assistantApplyPreset").addEventListener("click", applyAssistantPreset);
       // Feature 10 : bouton raccourci Grand Belfort
       var gbBtn = document.getElementById("assistantGrandBelfort");
@@ -15797,6 +16227,7 @@
     // Les modules sont toujours initialisés (handlers liés, modaux cachés par CSS expert-only)
     // Le flag window._expertMode contrôle uniquement la visibilité CSS et l'AI Hub section
     window._expertMode = window._expertMode || false;
+    initVmwContextBlock();
     initPhasePanelCollapses();
     initDraftManager();
     initTcoAdvanced();
