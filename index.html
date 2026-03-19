@@ -16349,10 +16349,35 @@
       window._updateSolutionLeader = function() {
         if (!widget) return;
         if (typeof getAnswers !== "function") return;
+
+        // ── Priorité : utiliser les vrais scores du moteur si une analyse a été lancée ──
+        if (latestAnalysisResult && latestAnalysisResult.top && latestAnalysisResult.top.length) {
+          var res = latestAnalysisResult;
+          var allSols = (res.top || []).slice();
+          if (res.vmware) allSols.push(res.vmware);
+          var sorted = allSols.map(function(s) {
+            return { name: s.name.replace(" (reference)", "").replace(" (Maintien actuel)", ""), score: s.score };
+          }).sort(function(a, b) { return b.score - a.score; });
+
+          var best = sorted[0];
+          if (slwName) slwName.textContent = best.name;
+          if (slwBar)  slwBar.style.width  = Math.max(10, best.score) + "%";
+          if (slwConf) slwConf.textContent = best.score + "/100 — Score moteur";
+          if (slwRun) {
+            slwRun.innerHTML = sorted.slice(1, 4).map(function(s) {
+              return "<div class='slw-runner'>" +
+                "<span class='slw-runner-name'>" + s.name + "</span>" +
+                "<span class='slw-runner-score'>" + s.score + "</span>" +
+                "</div>";
+            }).join("");
+          }
+          widget.hidden = false;
+          return;
+        }
+
+        // ── Fallback heuristique (avant la première analyse) ──
         var a = getAnswers();
         var sc = computeScores(a);
-
-        // Sort
         var sorted = Object.keys(sc).map(function(k) {
           return { id: k, name: SCENARIO_BASE[k].name, score: sc[k] };
         }).sort(function(a, b) { return b.score - a.score; });
@@ -16364,11 +16389,9 @@
         var confidence = Math.min(98, Math.round(((best.score - 50) / 50) * 100));
         if (confidence < 5) confidence = 5;
 
-        window._vmLog && window._vmLog.info("SolLeader", "Leader: «" + best.name + "» " + confidence + "% | top3: " + sorted.slice(1, 4).map(function(x) { return x.name; }).join(", "));
-
         if (slwName) slwName.textContent = best.name;
         if (slwBar)  slwBar.style.width  = Math.max(10, confidence) + "%";
-        if (slwConf) slwConf.textContent = confidence + "% de pertinence";
+        if (slwConf) slwConf.textContent = confidence + "% — Estimation (lancez l'analyse)";
         if (slwRun) {
           slwRun.innerHTML = sorted.slice(1, 4).map(function(s) {
             var pct = Math.max(0, Math.round(((s.score - minS) / range) * 100));
