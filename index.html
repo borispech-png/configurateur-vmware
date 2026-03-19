@@ -956,6 +956,24 @@
                     <option value="san">3-Tier SAN</option>
                   </select>
                 </div>
+                <div class="field">
+                  <label for="migrationTrigger">Déclencheur principal <span class="help-tip" title="Ce qui motive la migration hors VMware. Influe sur la pondération coût vs souveraineté vs vitesse : une hausse tarifaire priorise le TCO, un audit sécurité priorise la conformité, une transformation IT priorise la modernisation.">?</span></label>
+                  <select id="migrationTrigger" data-step="1">
+                    <option value="tarifaire" selected>Hausse tarifaire Broadcom</option>
+                    <option value="contrat">Fin de contrat / renouvellement</option>
+                    <option value="souverainete">Projet de souveraineté</option>
+                    <option value="securite">Audit sécurité / conformité</option>
+                    <option value="transformation">Transformation IT / modernisation</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="openSourceAppetite">Appétence open source <span class="help-tip" title="Détermine si des solutions sans éditeur commercial sont acceptables. Non acceptable : exclut Proxmox standalone, XCP-ng sans Vates, OpenStack sans intégrateur. Avec support éditeur : autorise les solutions avec support commercial disponible. Totalement acceptable : toutes les solutions open source sont évaluées sans pénalité.">?</span></label>
+                  <select id="openSourceAppetite" data-step="1">
+                    <option value="acceptable" selected>Acceptable avec support éditeur</option>
+                    <option value="total">Totalement acceptable</option>
+                    <option value="non">Non acceptable (éditeur commercial requis)</option>
+                  </select>
+                </div>
               </div>
             </div>
 
@@ -1018,6 +1036,25 @@
               </div>
               <div class="checks" style="margin-top:1rem;">
                 <label><input id="useVeeam" data-step="2" type="checkbox"> Utilisez-vous Veeam comme solution de sauvegarde ? <span class="help-tip" title="Veeam Backup &amp; Replication est tres repandu dans le secteur public. Son niveau de support varie selon la solution cible: natif complet (Nutanix, HyperV), plugin (Proxmox, HPE VME), ou beta (OpenShift).">?</span></label>
+              </div>
+              <h3 class="form-subsection-title">&#128721; Workloads bloquants potentiels</h3>
+              <p class="form-subsection-hint">Cochez les situations présentes dans votre parc. Ces workloads peuvent ne pas être migrables à court terme et nécessitent une stratégie de maintien VMware partiel.</p>
+              <div class="checks">
+                <label><input id="legacyOs" data-step="2" type="checkbox"> OS legacy (Windows 2008/2012 EOL, RHEL 6) <span class="help-tip" title="Les OS en fin de vie peuvent être incompatibles avec certains hyperviseurs cibles ou nécessiter une mise à niveau préalable. Forrester estime que 30 % des VMs sont non migrables à court terme pour cette raison.">?</span></label>
+                <label><input id="vGpuUsage" data-step="2" type="checkbox"> Usage vGPU / GPU passthrough <span class="help-tip" title="Les workloads nécessitant un accès GPU direct (IA, rendu, CAO, VDI graphique) sont très dépendants de la couche VMware. Alternatives limitées : Proxmox supporte le GPU passthrough, Nutanix AHV a une roadmap vGPU, les autres sont en retrait.">?</span></label>
+                <label><input id="vsphereApiDep" data-step="2" type="checkbox"> Dépendances APIs vSphere propriétaires <span class="help-tip" title="Certaines applications métier s'appuient sur les APIs vSphere (VDDK, VADP, vSphere SDK) pour la sauvegarde ou l'orchestration. Ces dépendances nécessitent une réécriture ou un adaptateur avant migration.">?</span></label>
+              </div>
+              <div class="grid-3" style="margin-top:1rem;">
+                <div class="field">
+                  <label for="cloudIntegration">Intégration cloud existante <span class="help-tip" title="Présence d'un cloud public déjà utilisé en production. Azure : oriente vers Hyper-V/Azure Stack HCI ou Azure VMware Solution. Multi-cloud : favorise HPE VME/Morpheus comme orchestrateur. Aucune : pas de biais cloud appliqué.">?</span></label>
+                  <select id="cloudIntegration" data-step="2">
+                    <option value="aucune" selected>Aucune</option>
+                    <option value="azure">Microsoft Azure</option>
+                    <option value="aws">Amazon AWS</option>
+                    <option value="gcp">Google Cloud</option>
+                    <option value="multicloud">Multi-cloud</option>
+                  </select>
+                </div>
               </div>
               <div class="conditional-block" id="veeamBlock" hidden>
                 <div class="field">
@@ -1089,6 +1126,14 @@
                     <option value="mixte" selected>Mixte (Windows + Linux)</option>
                     <option value="windows">&gt; 70 % Windows</option>
                     <option value="linux">&gt; 70 % Linux</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="softwareEcosystem">Écosystème logiciel dominant <span class="help-tip" title="L'écosystème logiciel principal de votre SI — différent du profil OS invités. Microsoft-centric : AD, SQL Server, Exchange, SCCM omniprésents → Hyper-V naturel. Linux/OSS : Ansible, PostgreSQL, applications open source → Proxmox/XCP-ng/OpenStack favorisés. Mixte : pas de biais éditeur appliqué.">?</span></label>
+                  <select id="softwareEcosystem" data-step="4">
+                    <option value="mixte" selected>Mixte</option>
+                    <option value="microsoft">Microsoft-centric (AD, SQL, Exchange)</option>
+                    <option value="linux">Linux / Open Source dominant</option>
                   </select>
                 </div>
                 <div class="field">
@@ -1171,6 +1216,14 @@
                     <option value="limitee">Limitee</option>
                     <option value="moyenne" selected>Moyenne</option>
                     <option value="large">Large</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="rollbackRequirement">Plan de rollback <span class="help-tip" title="Niveau d'exigence pour un retour arrière en cas d'échec de la migration. Obligatoire formalisé : pénalise les solutions à migration complexe (OpenStack, OpenShift) et favorise les solutions permettant la coexistence VMware/cible (Nutanix, HPE VME). Non requis : pas de pénalité appliquée.">?</span></label>
+                  <select id="rollbackRequirement" data-step="5">
+                    <option value="souhaitable" selected>Souhaitable</option>
+                    <option value="obligatoire">Obligatoire avec plan formalisé</option>
+                    <option value="non">Non requis</option>
                   </select>
                 </div>
               </div>
@@ -1492,6 +1545,7 @@
         <button id="whatIfToggleBtn" class="whatif-toggle-btn" hidden title="Simuler l'impact d'un changement de pondération">&#127922; Simuler</button>
       </div>
       <div id="recapStrip" class="recap-strip" hidden></div>
+      <div id="blockingAlert" class="blocking-alert" hidden></div>
       <div id="whatIfPanel" class="whatif-panel" hidden>
         <div class="whatif-header">
           <span class="whatif-title">&#127922; Simulation — pondérations en temps réel</span>
@@ -3389,6 +3443,7 @@
         healthData: getChecked("healthData"),
         auditability: getChecked("auditability"),
         guestOsProfile: getValue("guestOsProfile") || "mixte",
+        softwareEcosystem: getValue("softwareEcosystem") || "mixte",
         linuxSkill: getValue("linuxSkill"),
         automationSkill: getValue("automationSkill"),
         opsCapacity: getValue("opsCapacity"),
@@ -3403,6 +3458,13 @@
         procurementMode: getValue("procurementMode"),
         contractReversibility: getChecked("contractReversibility"),
         purchaseVisibility: getChecked("purchaseVisibility"),
+        migrationTrigger: getValue("migrationTrigger") || "tarifaire",
+        openSourceAppetite: getValue("openSourceAppetite") || "acceptable",
+        legacyOs: getChecked("legacyOs"),
+        vGpuUsage: getChecked("vGpuUsage"),
+        vsphereApiDep: getChecked("vsphereApiDep"),
+        cloudIntegration: getValue("cloudIntegration") || "aucune",
+        rollbackRequirement: getValue("rollbackRequirement") || "souhaitable",
         depBackupLevel: getValue("depBackupLevel"),
         depMonitoring: getValue("depMonitoring"),
         nsxCriticality: getValue("nsxCriticality"),
@@ -3835,6 +3897,97 @@
       // Aucun renouvellement prévu (SnS orphelin)
       if (vmwR === "none" && isOpenSource) impacts.push({ rule: "SnS orphelin — open-source TCO optimal", delta: 0.05 });
       if (vmwR === "none" && !isVmwareSol && solution.baseline.cost >= 7) impacts.push({ rule: "SnS orphelin — reduction cout prioritaire", delta: 0.03 });
+
+      // ── Règles déclencheur de migration ──────────────────────────────
+      const trigger = answers.migrationTrigger || "tarifaire";
+      if (trigger === "tarifaire") {
+        if (solution.baseline.cost >= 8) impacts.push({ rule: "déclencheur tarifaire — TCO prioritaire", delta: 0.05 });
+        if (solution.name === "VMware (reference)") impacts.push({ rule: "déclencheur tarifaire — maintien VMware contradictoire", delta: -0.07 });
+      }
+      if (trigger === "souverainete") {
+        if (solution.baseline.sovereignty >= 8) impacts.push({ rule: "déclencheur souveraineté — solution souveraine valorisée", delta: 0.06 });
+        if (solution.baseline.sovereignty <= 5) impacts.push({ rule: "déclencheur souveraineté — solution non souveraine", delta: -0.06 });
+      }
+      if (trigger === "securite") {
+        if (solution.baseline.security >= 8) impacts.push({ rule: "déclencheur audit sécurité — solution sécurisée valorisée", delta: 0.05 });
+      }
+      if (trigger === "transformation") {
+        if (solution.profile.containerFit >= 8) impacts.push({ rule: "déclencheur transformation — plateforme conteneurs valorisée", delta: 0.06 });
+        if (solution.name === "OpenShift Virtualization") impacts.push({ rule: "déclencheur transformation — OpenShift natif", delta: 0.04 });
+      }
+
+      // ── Règles appétence open source ─────────────────────────────────
+      const osAppetite = answers.openSourceAppetite || "acceptable";
+      const isOpenSourceNoCommercial = solution.name === "Proxmox VE" || solution.name === "OpenStack + KVM";
+      const isOpenSourceWithVendor = solution.name === "XCP-ng + XOSTOR";
+      if (osAppetite === "non") {
+        if (isOpenSourceNoCommercial) impacts.push({ rule: "open source refusé — solution exclue (pas d'éditeur)", delta: -0.18 });
+        if (isOpenSourceWithVendor) impacts.push({ rule: "open source refusé — XCP-ng/Vates éditeur commercial", delta: -0.06 });
+      }
+      if (osAppetite === "total") {
+        if (isOpenSourceNoCommercial) impacts.push({ rule: "open source bienvenu — bonus TCO/liberté", delta: 0.05 });
+        if (isOpenSourceWithVendor) impacts.push({ rule: "open source bienvenu — XCP-ng/Vates valorisé", delta: 0.04 });
+      }
+
+      // ── Règles écosystème logiciel dominant ──────────────────────────
+      const swEco = answers.softwareEcosystem || "mixte";
+      if (swEco === "microsoft") {
+        if (solution.name === "Hyper-V / Azure Stack HCI") impacts.push({ rule: "écosystème MS — Hyper-V intégration native AD/SQL", delta: 0.09 });
+        if (solution.name === "Nutanix AHV") impacts.push({ rule: "écosystème MS — AHV compatible Windows", delta: 0.03 });
+        if (solution.name === "OpenStack + KVM") impacts.push({ rule: "écosystème MS — OpenStack sous-optimal pour SI Microsoft", delta: -0.07 });
+        if (solution.name === "XCP-ng + XOSTOR") impacts.push({ rule: "écosystème MS — XCP-ng intégration MS limitée", delta: -0.04 });
+      }
+      if (swEco === "linux") {
+        if (solution.name === "Proxmox VE") impacts.push({ rule: "écosystème Linux — Proxmox/KVM natif", delta: 0.06 });
+        if (solution.name === "OpenStack + KVM") impacts.push({ rule: "écosystème Linux — OpenStack natif", delta: 0.05 });
+        if (solution.name === "XCP-ng + XOSTOR") impacts.push({ rule: "écosystème Linux — XCP-ng natif Linux", delta: 0.04 });
+        if (solution.name === "Hyper-V / Azure Stack HCI") impacts.push({ rule: "écosystème Linux — Hyper-V optimisé Windows", delta: -0.06 });
+      }
+
+      // ── Règles workloads bloquants ────────────────────────────────────
+      if (answers.legacyOs) {
+        if (solution.name === "Hyper-V / Azure Stack HCI") impacts.push({ rule: "OS legacy — Hyper-V supporte Windows 2008 R2 (Generation 1)", delta: 0.04 });
+        if (solution.name === "Proxmox VE") impacts.push({ rule: "OS legacy — Proxmox/KVM supporte OS anciens via mode legacy BIOS", delta: 0.03 });
+        if (solution.name === "OpenShift Virtualization") impacts.push({ rule: "OS legacy — OpenShift non compatible OS très anciens", delta: -0.06 });
+      }
+      if (answers.vGpuUsage) {
+        if (solution.name === "Proxmox VE") impacts.push({ rule: "vGPU — Proxmox supporte GPU passthrough natif", delta: 0.05 });
+        if (solution.name === "Nutanix AHV") impacts.push({ rule: "vGPU — AHV roadmap vGPU partielle", delta: 0.02 });
+        if (solution.name === "OpenStack + KVM") impacts.push({ rule: "vGPU — OpenStack supporte GPU passthrough via Nova", delta: 0.03 });
+        if (solution.name === "XCP-ng + XOSTOR") impacts.push({ rule: "vGPU — XCP-ng GPU passthrough limité", delta: -0.05 });
+        if (solution.name === "OpenShift Virtualization") impacts.push({ rule: "vGPU — OpenShift vGPU non supporté nativement", delta: -0.07 });
+        if (solution.name === "Scale Computing HC3") impacts.push({ rule: "vGPU — Scale HC3 pas de support GPU", delta: -0.07 });
+      }
+      if (answers.vsphereApiDep) {
+        if (solution.name === "HPE VME / Morpheus") impacts.push({ rule: "APIs vSphere — HPE VME couche de compatibilité partielle", delta: 0.06 });
+        if (isOpenSourceNoCommercial || isOpenSourceWithVendor) impacts.push({ rule: "APIs vSphere — solution incompatible APIs propriétaires", delta: -0.09 });
+        if (solution.name === "Nutanix AHV") impacts.push({ rule: "APIs vSphere — AHV sans compatibilité vSphere API", delta: -0.05 });
+      }
+
+      // ── Règles intégration cloud existante ────────────────────────────
+      const cloud = answers.cloudIntegration || "aucune";
+      if (cloud === "azure") {
+        if (solution.name === "Hyper-V / Azure Stack HCI") impacts.push({ rule: "Azure existant — Hyper-V/Azure Stack HCI intégration native", delta: 0.09 });
+        if (solution.name === "Cloud SecNumCloud") impacts.push({ rule: "Azure existant — cloud hybride souverain possible", delta: 0.04 });
+        if (solution.name === "Nutanix AHV") impacts.push({ rule: "Azure existant — Nutanix Cloud Clusters (NC2) disponible", delta: 0.04 });
+      }
+      if (cloud === "multicloud") {
+        if (solution.name === "HPE VME / Morpheus") impacts.push({ rule: "multi-cloud — Morpheus orchestrateur natif multi-cloud", delta: 0.09 });
+        if (solution.name === "OpenStack + KVM") impacts.push({ rule: "multi-cloud — OpenStack API cloud-native", delta: 0.04 });
+      }
+      if (cloud === "aws") {
+        if (solution.name === "Cloud SecNumCloud") impacts.push({ rule: "AWS existant — cloud souverain FR en complément", delta: 0.03 });
+      }
+
+      // ── Règles plan de rollback ───────────────────────────────────────
+      const rollback = answers.rollbackRequirement || "souhaitable";
+      if (rollback === "obligatoire") {
+        if (solution.name === "OpenStack + KVM") impacts.push({ rule: "rollback obligatoire — OpenStack migration complexe, retour difficile", delta: -0.08 });
+        if (solution.name === "OpenShift Virtualization") impacts.push({ rule: "rollback obligatoire — OpenShift rupture architecturale forte", delta: -0.06 });
+        if (solution.name === "Nutanix AHV") impacts.push({ rule: "rollback obligatoire — AHV coexistence VMware possible (HCX)", delta: 0.05 });
+        if (solution.name === "HPE VME / Morpheus") impacts.push({ rule: "rollback obligatoire — HPE VME migration incrémentale compatible", delta: 0.05 });
+        if (solution.name === "Hyper-V / Azure Stack HCI") impacts.push({ rule: "rollback obligatoire — Hyper-V migration parallèle possible", delta: 0.03 });
+      }
 
       // ── Règles profil OS invités ──────────────────────────────────────
       const guestOs = answers.guestOsProfile || "mixte";
@@ -6729,6 +6882,12 @@
       if (answers.prioReversibility) chips.push({ icon:'↩️', text: 'Priorité Réversibilité', cls:'rchip-prio' });
       if (answers.healthData) chips.push({ icon:'🏥', text: 'Données de santé (HDS)', cls:'rchip-warn' });
       if (answers.sovereigntyNeed === 'tres-fort') chips.push({ icon:'🇫🇷', text: 'Souveraineté maximale', cls:'rchip-warn' });
+      var trigLabels = { tarifaire:'Déclencheur: Tarifaire', contrat:'Déclencheur: Fin contrat', souverainete:'Déclencheur: Souveraineté', securite:'Déclencheur: Audit sécu', transformation:'Déclencheur: Transformation' };
+      if (answers.migrationTrigger && trigLabels[answers.migrationTrigger]) chips.push({ icon:'🎯', text: trigLabels[answers.migrationTrigger], cls:'rchip-neutral' });
+      if (answers.openSourceAppetite === 'non') chips.push({ icon:'🚫', text: 'Open source refusé', cls:'rchip-warn' });
+      if (answers.openSourceAppetite === 'total') chips.push({ icon:'✅', text: 'Open source OK', cls:'rchip-prio' });
+      if (answers.cloudIntegration && answers.cloudIntegration !== 'aucune') { var cLabels = { azure:'Azure', aws:'AWS', gcp:'GCP', multicloud:'Multi-cloud' }; chips.push({ icon:'☁️', text: cLabels[answers.cloudIntegration] || answers.cloudIntegration, cls:'rchip-neutral' }); }
+      if (answers.legacyOs || answers.vGpuUsage || answers.vsphereApiDep) chips.push({ icon:'⚠️', text: 'Workloads bloquants', cls:'rchip-warn' });
       var exitH = answers.exitHorizon;
       if (exitH) {
         var horizonTxt = exitH <= 6 ? '< 6 mois ⚠' : exitH <= 12 ? '< 12 mois' : exitH + ' mois';
@@ -6752,6 +6911,21 @@
         var _recapHtml = buildRecapStrip(ans);
         _recapStrip.innerHTML = _recapHtml;
         _recapStrip.hidden = !_recapHtml;
+      }
+
+      // Blocking workloads alert
+      var _blockAlert = document.getElementById('blockingAlert');
+      if (_blockAlert) {
+        var _blocks = [];
+        if (ans.legacyOs) _blocks.push('&#128721; <strong>OS legacy</strong> (Win 2008/2012, RHEL 6) — certaines VMs peuvent nécessiter une mise à niveau ou un maintien VMware');
+        if (ans.vGpuUsage) _blocks.push('&#127917; <strong>vGPU / GPU passthrough</strong> — options limitées sur la majorité des alternatives (vérifier Proxmox ou Nutanix AHV)');
+        if (ans.vsphereApiDep) _blocks.push('&#128279; <strong>APIs vSphere propriétaires</strong> — dépendances applicatives à réécrire avant migration (VDDK, VADP, SDK)');
+        if (_blocks.length) {
+          _blockAlert.innerHTML = '<div class="blocking-alert-title">&#9888;&#65039; ' + _blocks.length + ' workload(s) bloquant(s) détecté(s) — plan de maintien VMware partiel recommandé</div><ul class="blocking-alert-list">' + _blocks.map(function(b){ return '<li>' + b + '</li>'; }).join('') + '</ul>';
+          _blockAlert.hidden = false;
+        } else {
+          _blockAlert.hidden = true;
+        }
       }
 
       cards.innerHTML = top.map((solution, idx) => {
