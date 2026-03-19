@@ -4927,3 +4927,12 @@ html[data-theme="dark"] .whatif-title { color:#6ee7b7; }
 html[data-theme="dark"] .whatif-desc { color:#9ca3af; }
 html[data-theme="dark"] .whatif-same { background:#0f3d28; border-color:#166534; }
 html[data-theme="dark"] .whatif-changed { background:#3b2700; border-color:#92400e; color:#fde68a; }
+
+/* ── HA / DR compare tab ─────────────────────────────────────── */
+.hadr-table td:first-child { width:140px; color:#6b7280; font-size:.8rem; white-space:nowrap; }
+.hadr-table td:last-child { font-size:.82rem; }
+.hadr-ok      { color:#059669; font-weight:700; margin-right:4px; }
+.hadr-no      { color:#9ca3af; font-weight:700; margin-right:4px; }
+.hadr-partial { color:#d97706; font-weight:700; margin-right:4px; }
+.hadr-notes { margin-top:10px; padding:8px 12px; background:#f0fdf4; border-left:3px solid var(--brand,#006d5d); border-radius:0 6px 6px 0; font-size:.78rem; color:#374151; line-height:1.5; }
+html[data-theme="dark"] .hadr-notes { background:#0d2a20; color:#9ca3af; }

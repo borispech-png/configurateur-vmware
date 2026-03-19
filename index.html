@@ -1084,6 +1084,14 @@
               <h2>4. Capacites internes</h2>
               <div class="grid-3">
                 <div class="field">
+                  <label for="guestOsProfile">Profil OS des VMs actuelles <span class="help-tip" title="Répartition des OS invités dans votre parc VMware. Impact sur le scoring : Hyper-V est optimisé Windows, Proxmox/XCP-ng/OpenStack sont optimisés Linux. Mixte = pas de biais appliqué.">?</span></label>
+                  <select id="guestOsProfile" data-step="4">
+                    <option value="mixte" selected>Mixte (Windows + Linux)</option>
+                    <option value="windows">&gt; 70 % Windows</option>
+                    <option value="linux">&gt; 70 % Linux</option>
+                  </select>
+                </div>
+                <div class="field">
                   <label for="linuxSkill">Competence Linux/KVM <span class="help-tip" title="Faible: usage Windows predominant, pas d'expertise systeme Linux. Moyen: administration courante (Bash, systemd, paquets). Fort: expertise KVM/libvirt, packaging, automation Ansible/Terraform, conteneurs.">?</span></label>
                   <select id="linuxSkill" data-step="4">
                     <option value="faible">Faible</option>
@@ -2409,6 +2417,7 @@
           <button class="cmp-tab" data-cmp-tab="tech">&#128187; Specs Tech</button>
           <button class="cmp-tab" data-cmp-tab="migration">&#128640; Migration</button>
           <button class="cmp-tab" data-cmp-tab="hardware">&#128190; Architecture</button>
+          <button class="cmp-tab" data-cmp-tab="hadr">&#128737;&#65039; HA / DR</button>
         </div>
         <div class="cmp-body">
           <div class="cmp-cols" id="cmpCols"></div>
@@ -3379,6 +3388,7 @@
         sensitiveData: getChecked("sensitiveData"),
         healthData: getChecked("healthData"),
         auditability: getChecked("auditability"),
+        guestOsProfile: getValue("guestOsProfile") || "mixte",
         linuxSkill: getValue("linuxSkill"),
         automationSkill: getValue("automationSkill"),
         opsCapacity: getValue("opsCapacity"),
@@ -3825,6 +3835,22 @@
       // Aucun renouvellement prévu (SnS orphelin)
       if (vmwR === "none" && isOpenSource) impacts.push({ rule: "SnS orphelin — open-source TCO optimal", delta: 0.05 });
       if (vmwR === "none" && !isVmwareSol && solution.baseline.cost >= 7) impacts.push({ rule: "SnS orphelin — reduction cout prioritaire", delta: 0.03 });
+
+      // ── Règles profil OS invités ──────────────────────────────────────
+      const guestOs = answers.guestOsProfile || "mixte";
+      if (guestOs === "windows") {
+        if (solution.name === "Hyper-V / Azure Stack HCI") impacts.push({ rule: "parc Windows — Hyper-V natif optimal", delta: 0.08 });
+        if (solution.name === "Nutanix AHV") impacts.push({ rule: "parc Windows — AHV compatible", delta: 0.02 });
+        if (solution.name === "OpenStack + KVM") impacts.push({ rule: "parc Windows — OpenStack sous-optimal pour Windows", delta: -0.06 });
+        if (solution.name === "XCP-ng + XOSTOR") impacts.push({ rule: "parc Windows — XCP-ng support Windows limité", delta: -0.04 });
+        if (solution.name === "Proxmox VE") impacts.push({ rule: "parc Windows — Proxmox support Windows partiel", delta: -0.03 });
+      }
+      if (guestOs === "linux") {
+        if (solution.name === "Proxmox VE") impacts.push({ rule: "parc Linux — Proxmox/KVM natif optimal", delta: 0.07 });
+        if (solution.name === "XCP-ng + XOSTOR") impacts.push({ rule: "parc Linux — XCP-ng natif Linux", delta: 0.05 });
+        if (solution.name === "OpenStack + KVM") impacts.push({ rule: "parc Linux — OpenStack natif Linux", delta: 0.06 });
+        if (solution.name === "Hyper-V / Azure Stack HCI") impacts.push({ rule: "parc Linux — Hyper-V sous-optimal pour Linux", delta: -0.07 });
+      }
 
       const totalDelta = impacts.reduce((acc, i) => acc + i.delta, 0);
       const multiplier = clamp(1 + totalDelta, 0.58, 1.24);
@@ -6217,6 +6243,120 @@
       modal.hidden = false;
     }
 
+    // ── Données HA / DR par solution ────────────────────────────────
+    var HA_DR_DATA = {
+      "VMware (reference)": {
+        haType: "N+1 + Fault Tolerance actif/actif",
+        rto: "< 1 min (FT) / < 5 min (HA)",
+        rpo: "Synchrone (FT) / Quasi-synchrone (HA)",
+        liveMigration: { ok: true, label: "vMotion — sans interruption" },
+        geoCluster: { ok: true, label: "Stretched cluster vSAN (option payante)" },
+        faultTolerance: { ok: true, label: "FT inclus vSphere Ent+" },
+        backupIntegre: { ok: "partial", label: "Plugins Veeam / Commvault" },
+        notes: "Référence du marché. FT = miroir de VM, zéro interruption. vSAN HCI ou SAN externe."
+      },
+      "Proxmox VE": {
+        haType: "N+1 (Corosync/Pacemaker)",
+        rto: "< 5 min",
+        rpo: "Asynchrone (réplication PBS/Ceph)",
+        liveMigration: { ok: true, label: "Migration à chaud KVM native" },
+        geoCluster: { ok: false, label: "Pas de geo-cluster natif" },
+        faultTolerance: { ok: false, label: "Non disponible" },
+        backupIntegre: { ok: true, label: "Proxmox Backup Server (PBS) inclus" },
+        notes: "HA sur cluster Corosync. Réplication asynchrone entre datacenters via PBS."
+      },
+      "XCP-ng + XOSTOR": {
+        haType: "N+1 (XAPI pool HA)",
+        rto: "< 5 min",
+        rpo: "Synchrone (XOSTOR DRBD natif)",
+        liveMigration: { ok: true, label: "Live migration XAPI" },
+        geoCluster: { ok: false, label: "Pas de stretch natif — réplication async entre sites" },
+        faultTolerance: { ok: false, label: "Non disponible" },
+        backupIntegre: { ok: "partial", label: "Xen Orchestra (XO) snapshots + réplication" },
+        notes: "XOSTOR assure la réplication synchrone intra-cluster. Xen Orchestra pour l'orchestration HA."
+      },
+      "Nutanix AHV": {
+        haType: "N+1 + Metro Availability",
+        rto: "< 5 min (HA) / < 1 min (Metro)",
+        rpo: "Synchrone (Metro, 0 RPO) / Async (NearSync ~1 min)",
+        liveMigration: { ok: true, label: "AHV live migration (AOS)" },
+        geoCluster: { ok: true, label: "Metro Availability — stretch cluster 2 sites (inclus)" },
+        faultTolerance: { ok: false, label: "Non disponible nativement" },
+        backupIntegre: { ok: true, label: "Nutanix Mine + CDP NearSync" },
+        notes: "Metro Availability = RPO 0 entre 2 datacenters. NearSync ≈ 1 min RPO. Prism Central pour l'orchestration."
+      },
+      "OpenStack + KVM": {
+        haType: "N+1 (Masakari instance HA)",
+        rto: "< 10 min (Masakari)",
+        rpo: "Asynchrone (Ceph RBD)",
+        liveMigration: { ok: true, label: "Nova live migration KVM" },
+        geoCluster: { ok: "partial", label: "Multi-region possible — ingénierie requise" },
+        faultTolerance: { ok: false, label: "Non disponible" },
+        backupIntegre: { ok: "partial", label: "Cinder snapshots + Freezer (optionnel)" },
+        notes: "Masakari assure la bascule automatique des instances. Ceph pour la réplication du stockage."
+      },
+      "Hyper-V / Azure Stack HCI": {
+        haType: "N+1 (Failover Clustering)",
+        rto: "< 5 min (Cluster) / RTO contractuel (Azure Site Recovery)",
+        rpo: "Asynchrone 30s–15 min (Hyper-V Replica) / Quasi-sync (ASR)",
+        liveMigration: { ok: true, label: "Live Migration Windows Server native" },
+        geoCluster: { ok: "partial", label: "Hyper-V Replica async — Azure Site Recovery (payant)" },
+        faultTolerance: { ok: false, label: "Non disponible" },
+        backupIntegre: { ok: true, label: "Windows Server Backup + Azure Backup" },
+        notes: "Hyper-V Replica = DR async gratuit. Azure Site Recovery = DR managé vers Azure (licence requise)."
+      },
+      "HPE VME / Morpheus": {
+        haType: "Dépend de l'hyperviseur sous-jacent",
+        rto: "Hérité (Proxmox/KVM/vSphere)",
+        rpo: "Hérité de l'hyperviseur",
+        liveMigration: { ok: true, label: "Via l'hyperviseur sous-jacent" },
+        geoCluster: { ok: "partial", label: "Via l'hyperviseur — orchestration Morpheus" },
+        faultTolerance: { ok: false, label: "Non natif Morpheus" },
+        backupIntegre: { ok: "partial", label: "Intégrations Veeam, Zerto via Morpheus" },
+        notes: "Morpheus est une couche d'orchestration. HA/DR dépend entièrement de l'hyperviseur HPE configuré en dessous."
+      },
+      "OpenShift Virtualization": {
+        haType: "Pod restart + VM live migration OCP",
+        rto: "< 5 min (pod restart) / < 2 min (live migration)",
+        rpo: "Asynchrone (ODF/Ceph réplication)",
+        liveMigration: { ok: true, label: "migration.openshift.io — live migration VM" },
+        geoCluster: { ok: "partial", label: "ODF Stretch Cluster (tech preview)" },
+        faultTolerance: { ok: false, label: "Non disponible" },
+        backupIntegre: { ok: "partial", label: "OADP (OpenShift API for Data Protection)" },
+        notes: "HA via le scheduler Kubernetes. Live migration des VM en beta stable. ODF pour la réplication Ceph entre zones."
+      },
+      "Cloud SecNumCloud": {
+        haType: "Multi-AZ / multi-zone contractuel",
+        rto: "< 15 min (SLA contractuel typique)",
+        rpo: "Asynchrone ou synchrone selon offre",
+        liveMigration: { ok: "partial", label: "Dépend de l'offre IaaS — pas toujours natif" },
+        geoCluster: { ok: true, label: "Multi-AZ natif (ex: OVHcloud, Outscale)" },
+        faultTolerance: { ok: false, label: "Non applicable (cloud mutualisé)" },
+        backupIntegre: { ok: true, label: "Snapshots + sauvegarde managée incluse" },
+        notes: "HA garantie contractuellement (SLA 99,9%+). RPO/RTO définis par le contrat. Souveraineté SecNumCloud ANSSI."
+      },
+      "Harvester (SUSE)": {
+        haType: "N+1 (Harvester cluster HA)",
+        rto: "< 5 min",
+        rpo: "Asynchrone (Longhorn réplication 3 copies)",
+        liveMigration: { ok: true, label: "Live migration via KubeVirt" },
+        geoCluster: { ok: false, label: "Pas de geo-cluster natif" },
+        faultTolerance: { ok: false, label: "Non disponible" },
+        backupIntegre: { ok: true, label: "Longhorn snapshots + backup S3 intégré" },
+        notes: "Longhorn assure 3 copies des données en réplication synchrone intra-cluster. Backup externe via S3."
+      },
+      "Scale Computing HC3": {
+        haType: "N+1 (HyperCore HA automatique)",
+        rto: "< 5 min (automatique sans intervention)",
+        rpo: "Synchrone intra-cluster (HyperCore SCRIBE)",
+        liveMigration: { ok: true, label: "Live migration HyperCore" },
+        geoCluster: { ok: "partial", label: "Réplication async inter-sites (Scale DR)" },
+        faultTolerance: { ok: false, label: "Non disponible" },
+        backupIntegre: { ok: true, label: "Snapshots + Scale DR vers site secondaire" },
+        notes: "HA entièrement automatisé, sans configuration. SCRIBE = moteur de stockage distribué synchrone. Idéal sites distants."
+      }
+    };
+
     // ── Fonctions comparaison ────────────────────────────────────────
     function buildFicheColHtml(key, tab) {
       var data = PRODUCT_DATA[key];
@@ -6282,6 +6422,24 @@
         var h = '<table class="ps-table">';
         (data.migration||[]).forEach(function(m){ h += '<tr><td>'+m.label+'</td><td>'+m.value+'</td></tr>'; });
         h += '</table>';
+        return h;
+      }
+
+      if (tab === 'hadr') {
+        var hadr = HA_DR_DATA[key];
+        if (!hadr) return '<p class="text-muted" style="padding:1rem">Données HA/DR non disponibles.</p>';
+        function hadrIcon(v) { return v === true ? '<span class="hadr-ok">✓</span>' : v === false ? '<span class="hadr-no">—</span>' : '<span class="hadr-partial">~</span>'; }
+        var h = '';
+        h += '<table class="ps-table hadr-table">';
+        h += '<tr><td>Type HA</td><td><strong>' + hadr.haType + '</strong></td></tr>';
+        h += '<tr><td>RTO estimé</td><td><strong>' + hadr.rto + '</strong></td></tr>';
+        h += '<tr><td>RPO</td><td>' + hadr.rpo + '</td></tr>';
+        h += '<tr><td>Live migration</td><td>' + hadrIcon(hadr.liveMigration.ok) + ' ' + hadr.liveMigration.label + '</td></tr>';
+        h += '<tr><td>Geo-clustering</td><td>' + hadrIcon(hadr.geoCluster.ok) + ' ' + hadr.geoCluster.label + '</td></tr>';
+        h += '<tr><td>Fault Tolerance</td><td>' + hadrIcon(hadr.faultTolerance.ok) + ' ' + hadr.faultTolerance.label + '</td></tr>';
+        h += '<tr><td>Sauvegarde intégrée</td><td>' + hadrIcon(hadr.backupIntegre.ok) + ' ' + hadr.backupIntegre.label + '</td></tr>';
+        h += '</table>';
+        h += '<div class="hadr-notes">' + hadr.notes + '</div>';
         return h;
       }
 
@@ -11010,9 +11168,24 @@
         { id: "closure", label: "Cloture programme", lane: "governance", base: 0.2, risk: "modere", deps: ["hypercare"], milestone: true, critical: true, profileNeed: "chef_projet" }
       ];
 
+      // Tâche conversion format disques (.vmdk → format cible) — toujours nécessaire
+      var convTool = "qemu-img (vmdk → qcow2)";
+      if (answers.targetMode === "plateforme") convTool = "virt-v2v / qemu-img (vmdk → qcow2/raw)";
+      tasks.splice(4, 0, {
+        id: "vmConvert",
+        label: "Conversion images VM — " + convTool,
+        lane: "technical",
+        base: 1.5,
+        risk: "modere",
+        deps: ["pilotPrep"],
+        critical: true,
+        profileNeed: "technicien"
+      });
+      tasks.find(function(t) { return t.id === "pilotRun"; }).deps.push("vmConvert");
+
       if (answers.depNsx || answers.depVsan || answers.depHorizon) {
         var networkLabel = answers.depNsx ? "Chantier reseau NSX/VXLAN" : (answers.depVsan ? "Sortie vSAN / stockage cible" : "Trajectoire Horizon/VDI");
-        tasks.splice(8, 0, { id: "network", label: networkLabel, lane: "technical", base: 2.2, risk: "eleve", deps: ["pilotPrep"], critical: true, profileNeed: "ingenieur" });
+        tasks.splice(9, 0, { id: "network", label: networkLabel, lane: "technical", base: 2.2, risk: "eleve", deps: ["pilotPrep"], critical: true, profileNeed: "ingenieur" });
         tasks.find(function(t) { return t.id === "rollout"; }).deps.push("network");
       }
 
