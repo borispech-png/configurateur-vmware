@@ -2359,6 +2359,37 @@
     </div>
   </div>
 
+  <!-- ── Barre de comparaison flottante ── -->
+  <div id="compareBar" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:9000;background:var(--brand,#006d5d);color:#fff;padding:10px 20px;align-items:center;gap:14px;justify-content:center;box-shadow:0 -3px 14px rgba(0,0,0,.3);">
+    <span style="font-size:1rem;">&#128202;</span>
+    <span id="compareBtnLabel" style="font-size:.88rem;font-weight:600;flex:1;text-align:center;"></span>
+    <button id="compareLaunchBtn" onclick="openCompareModal()" style="background:#fff;color:var(--brand,#006d5d);border:none;border-radius:8px;padding:7px 20px;font-weight:700;cursor:pointer;font-size:.88rem;transition:opacity .15s;" disabled>Comparer &#9654;</button>
+    <button onclick="resetCompare()" style="background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.4);border-radius:8px;padding:7px 12px;cursor:pointer;font-size:.82rem;">&#10005;</button>
+  </div>
+
+  <!-- ── Modal comparaison côte à côte ── -->
+  <div id="cmpModal" hidden>
+    <div class="cmp-overlay" id="cmpOverlay">
+      <div class="cmp-dialog" role="dialog" aria-modal="true">
+        <div class="cmp-header">
+          <span class="cmp-header-title" id="cmpTitle">Comparaison</span>
+          <button class="ps-close" id="cmpClose" aria-label="Fermer">&times;</button>
+        </div>
+        <div class="cmp-tabs" id="cmpTabs">
+          <button class="cmp-tab active" data-cmp-tab="overview">&#128202; Vue globale</button>
+          <button class="cmp-tab" data-cmp-tab="licensing">&#128196; Licences &amp; Tarifs</button>
+          <button class="cmp-tab" data-cmp-tab="options">&#9881; Options</button>
+          <button class="cmp-tab" data-cmp-tab="tech">&#128187; Specs Tech</button>
+          <button class="cmp-tab" data-cmp-tab="migration">&#128640; Migration</button>
+          <button class="cmp-tab" data-cmp-tab="hardware">&#128190; Architecture</button>
+        </div>
+        <div class="cmp-body">
+          <div class="cmp-cols" id="cmpCols"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- FAB Chat flottant -->
   <button class="chat-fab" id="chatFab" title="Ouvrir l'assistant IA Mistral" aria-label="Chat IA">
     <span class="chat-fab-icon">&#129302;</span>
@@ -5373,7 +5404,29 @@
           { label: "Durée estimée", value: "6-18 mois selon taille parc (pilote + vagues)" },
           { label: "Compétences requises", value: "Linux, KVM, Ceph (si HCI) — formation recommandée" },
           { label: "Risque migration", value: "Modéré — outils matures mais process à industrialiser" }
-        ]
+        ],
+        hardware: [
+          {
+            type: "HCI", label: "Architecture de référence HCI — 6 nœuds Proxmox VE + Ceph",
+            topology: "6 nœuds Proxmox VE 8 + Ceph Quincy (RADOS)",
+            nodes: 6,
+            perNode: { cpu: "2× Intel Xeon Silver 4416+ — 20 cœurs (40 c/nœud)", ram: "16× 32 Go DDR5 (512 Go/nœud)", storage: "4× 3,84 To NVMe (WAL/cache) + 8× 7,68 To SSD SATA (OSD Ceph)", network: "2× SFP28 25 Gbps (VM) + 2× SFP28 25 Gbps (réplication Ceph)" },
+            cluster: { coresRaw: "240 cœurs bruts", coresProtected: "80 cœurs utiles (N+1 HA)", ramRaw: "3 072 Go brute", ramProtected: "1 024 Go utile (N+1)", storageRaw: "368 To brut", storageUsable: "~123 To utile (RF×3)", notes: "Ceph RADOS réplication ×3 (FTT=2 équivalent). DRR ~1,2:1 par défaut (pas de dédup natif Ceph). Proxmox Backup Server inclus pour déduplication sauvegarde. Self-healing automatique, CRUSH map configurable. Monitoring natif via Prometheus + Grafana." }
+          }
+        ],
+        veeam: {
+          level: "partial",
+          features: [
+            { label: "Backup VMs", status: "ok" }, { label: "VeeamZIP", status: "ok" },
+            { label: "Backup Copies", status: "ok" }, { label: "Application-aware Backup", status: "ok" },
+            { label: "Guest File Indexing", status: "ok" }, { label: "In-line scanning (malware)", status: "na" },
+            { label: "VM Replication", status: "na" }, { label: "CDP Replication", status: "na" },
+            { label: "Restore to source", status: "ok" }, { label: "Instant Recovery", status: "ok" },
+            { label: "Cross-platform Restore", status: "ok" }, { label: "Application Item Restore", status: "ok" },
+            { label: "File-level Recovery", status: "ok" }, { label: "SureBackup / Datalab", status: "na" },
+            { label: "Backup Verification & Content Scan", status: "na" }
+          ]
+        }
       },
       "Nutanix AHV": {
         badges: ["HCI", "Enterprise", "Support mondial", "Kubernetes natif"],
@@ -5477,7 +5530,30 @@
           { label: "Durée estimée", value: "12-30 mois — projet de transformation significatif" },
           { label: "Compétences requises", value: "OpenStack, Ceph, Linux avancé, réseau SDN, Ansible/Terraform" },
           { label: "Risque migration", value: "Élevé — complexité maximale, nécessite équipe dédiée ou intégrateur" }
-        ]
+        ],
+        hardware: [
+          {
+            type: "3TIER", label: "Architecture de référence — 3 nœuds controller + 6 nœuds compute KVM",
+            topology: "3 nœuds controller (HA) + 6 nœuds compute KVM + 3 nœuds Ceph Storage",
+            nodes: 9,
+            perNode: { cpu: "2× Intel Xeon Gold 6430 — 32 cœurs (64 c/nœud)", ram: "16× 32 Go DDR5 (512 Go/nœud compute)", storage: "N/A compute — 12× 15,36 To NVMe sur les nœuds Ceph dédiés", network: "2× SFP28 25 Gbps (tenant) + 2× 10 Gbps (management/storage)" },
+            san: "3 nœuds Ceph dédiés — 12× 15,36 To NVMe/nœud = 552 To brut, ~138 To utile (RF×4 cloud-grade)",
+            cluster: { coresRaw: "384 cœurs bruts (compute)", coresProtected: "128 cœurs utiles (N+1, overhead Nova ~15%)", ramRaw: "3 072 Go brute", ramProtected: "1 024 Go utile (overhead KVM+Nova)", storageRaw: "552 To brut (Ceph)", storageUsable: "~138 To utile", notes: "Déploiement Ansible/Kolla ou TripleO. Architecture découplée très flexible — compute et stockage scalables indépendamment. Neutron OVN recommandé pour SDN. Ceph séparé du compute pour les charges de production." }
+          }
+        ],
+        veeam: {
+          level: "partial",
+          features: [
+            { label: "Backup VMs", status: "ok" }, { label: "VeeamZIP", status: "na" },
+            { label: "Backup Copies", status: "ok" }, { label: "Application-aware Backup", status: "ok" },
+            { label: "Guest File Indexing", status: "ok" }, { label: "In-line scanning (malware)", status: "na" },
+            { label: "VM Replication", status: "na" }, { label: "CDP Replication", status: "na" },
+            { label: "Restore to source", status: "ok" }, { label: "Instant Recovery", status: "na" },
+            { label: "Cross-platform Restore", status: "ok" }, { label: "Application Item Restore", status: "ok" },
+            { label: "File-level Recovery", status: "ok" }, { label: "SureBackup / Datalab", status: "na" },
+            { label: "Backup Verification & Content Scan", status: "na" }
+          ]
+        }
       },
       "Hyper-V / Azure Stack HCI": {
         badges: ["Microsoft", "Hybride Azure", "HCI", "Secteur public"],
@@ -5517,7 +5593,37 @@
           { label: "Durée estimée", value: "6-15 mois selon taille parc" },
           { label: "Compétences requises", value: "Windows Server, PowerShell, Failover Cluster, Azure (si HCI)" },
           { label: "Risque migration", value: "Faible à modéré pour environnements Microsoft-centric" }
-        ]
+        ],
+        hardware: [
+          {
+            type: "HCI", label: "Azure Stack HCI 23H2 — 6 nœuds Storage Spaces Direct",
+            topology: "6 nœuds Azure Stack HCI 23H2 (S2D, RDMA RoCE v2)",
+            nodes: 6,
+            perNode: { cpu: "2× Intel Xeon Gold 6430 — 32 cœurs (64 c/nœud)", ram: "16× 32 Go DDR5 (512 Go/nœud)", storage: "2× 3,84 To NVMe (cache S2D) + 8× 7,68 To SSD SATA (capacité S2D)", network: "2× SFP28 25 Gbps RDMA RoCE v2 (VM+storage) + 1× 1 Gbps management" },
+            cluster: { coresRaw: "384 cœurs bruts", coresProtected: "128 cœurs utiles (N+1 + overhead Hyper-V)", ramRaw: "3 072 Go brute", ramProtected: "1 024 Go utile (N+1)", storageRaw: "392 To brut (S2D)", storageUsable: "~196 To utile (2-way mirror)", notes: "Storage Spaces Direct NVMe-cache + SSD-capacité. RDMA RoCE v2 requis (Mellanox/Intel CX). Azure Arc activable pour gouvernance hybride. Certifié Windows Server 2025 + Azure HCI OS 23H2. Intégration native Azure Backup, Monitor, Defender." }
+          },
+          {
+            type: "3TIER", label: "Hyper-V + SAN — Architecture classique 3-Tier",
+            topology: "6 serveurs Hyper-V + 2 baies SAN active/active",
+            nodes: 6,
+            perNode: { cpu: "2× Intel Xeon Gold 6430 — 32 cœurs (64 c/nœud)", ram: "16× 32 Go DDR5 (512 Go/nœud)", storage: "N/A — stockage SAN externe HPE Primera / Dell PowerStore", network: "2× SFP28 25 Gbps (VM + live migration) + 2× SFP28 25 Gbps (FC/iSCSI storage)" },
+            san: "2× HPE Primera 600 ou Dell PowerStore — 12× 15,36 To NVMe, DRR 2:1, Peer Persistence actif/actif",
+            cluster: { coresRaw: "384 cœurs bruts", coresProtected: "128 cœurs utiles", ramRaw: "3 072 Go brute", ramProtected: "1 024 Go utile", storageRaw: "184 To brut (SAN)", storageUsable: "~368 To utile (DRR 2:1)", notes: "Windows Server Failover Cluster (WSFC). Seule architecture validée SQL Server Always On + Hyper-V. Compatible System Center VMM, Azure Arc, SCCM. Réplication Hyper-V Replica vers site DR possible." }
+          }
+        ],
+        veeam: {
+          level: "complet",
+          features: [
+            { label: "Backup VMs", status: "ok" }, { label: "VeeamZIP", status: "ok" },
+            { label: "Backup Copies", status: "ok" }, { label: "Application-aware Backup", status: "ok" },
+            { label: "Guest File Indexing", status: "ok" }, { label: "In-line scanning (malware)", status: "ok" },
+            { label: "VM Replication", status: "ok" }, { label: "CDP Replication", status: "na" },
+            { label: "Restore to source", status: "ok" }, { label: "Instant Recovery", status: "ok" },
+            { label: "Cross-platform Restore", status: "ok" }, { label: "Application Item Restore", status: "ok" },
+            { label: "File-level Recovery", status: "ok" }, { label: "SureBackup / Datalab", status: "ok" },
+            { label: "Backup Verification & Content Scan", status: "ok" }
+          ]
+        }
       },
       "OpenShift Virtualization": {
         badges: ["Red Hat", "Kubernetes", "Conteneurs + VMs", "Moderne"],
@@ -5557,7 +5663,29 @@
           { label: "Durée estimée", value: "12-24 mois — transformation profonde de l'organisation IT" },
           { label: "Compétences requises", value: "Kubernetes avancé, Red Hat OCP, KubeVirt, ODF Ceph, CI/CD" },
           { label: "Risque migration", value: "Élevé — changement de paradigme complet (VM → cloud-native)" }
-        ]
+        ],
+        hardware: [
+          {
+            type: "HCI", label: "OpenShift Virtualization + ODF — 6 nœuds combinés OCP 4.17+",
+            topology: "3 nœuds control plane + 3 nœuds worker (ou 6 nœuds combinés)",
+            nodes: 6,
+            perNode: { cpu: "2× Intel Xeon Gold 6430 — 32 cœurs (64 c/nœud)", ram: "32× 32 Go DDR5 (1 024 Go/nœud)", storage: "4× 3,84 To NVMe (ODF Ceph OSDs)", network: "2× SFP28 25 Gbps (pods + VM) + 2× SFP28 25 Gbps (ODF/Ceph réplication)" },
+            cluster: { coresRaw: "384 cœurs bruts", coresProtected: "96 cœurs utiles (overhead K8s ~25%)", ramRaw: "6 144 Go brute", ramProtected: "3 072 Go utile (overhead Kubernetes + etcd)", storageRaw: "92 To brut (ODF)", storageUsable: "~31 To utile (RF×3)", notes: "OCP nécessite overhead significatif pour etcd, API server, monitoring, SDN (OVN-K). ODF Ceph RF×3 pour HA données. GPU NVIDIA opérateur disponible pour IA/ML. Migration MTV incluse. Architecture recommandée pour modernisation applicative cloud-native simultanée à la migration VM." }
+          }
+        ],
+        veeam: {
+          level: "beta",
+          features: [
+            { label: "Backup VMs", status: "beta" }, { label: "VeeamZIP", status: "na" },
+            { label: "Backup Copies", status: "beta" }, { label: "Application-aware Backup", status: "na" },
+            { label: "Guest File Indexing", status: "na" }, { label: "In-line scanning (malware)", status: "beta" },
+            { label: "VM Replication", status: "na" }, { label: "CDP Replication", status: "na" },
+            { label: "Restore to source", status: "beta" }, { label: "Instant Recovery", status: "beta" },
+            { label: "Cross-platform Restore", status: "beta" }, { label: "Application Item Restore", status: "na" },
+            { label: "File-level Recovery", status: "beta" }, { label: "SureBackup / Datalab", status: "na" },
+            { label: "Backup Verification & Content Scan", status: "na" }
+          ]
+        }
       },
       "HPE VME / Morpheus": {
         badges: ["HPE", "Multi-cloud", "CMP", "Enterprise", "GreenLake"],
@@ -5877,6 +6005,144 @@
       modal.hidden = false;
     }
 
+    // ── Fonctions comparaison ────────────────────────────────────────
+    function buildFicheColHtml(key, tab) {
+      var data = PRODUCT_DATA[key];
+      if (!data) return '<p class="text-muted" style="padding:1rem">Données non disponibles</p>';
+
+      if (tab === 'overview') {
+        var h = '';
+        h += '<div class="cmp-section-title">Badges & positionnement</div>';
+        h += '<div class="cmp-badges">' + (data.badges||[]).map(function(b){ return '<span class="ps-badge">'+b+'</span>'; }).join('') + '</div>';
+        if (data.licensing && data.licensing.notes) h += '<div class="cmp-note" style="margin-top:10px">' + data.licensing.notes + '</div>';
+        h += '<div class="cmp-section-title" style="margin-top:14px">Tarification résumée</div>';
+        h += '<table class="ps-table">';
+        (data.licensing && data.licensing.plans || []).forEach(function(p){ h += '<tr><td style="font-weight:600">'+p.name+'</td><td style="color:var(--brand)">'+p.price+'</td></tr>'; });
+        h += '</table>';
+        if (data.veeam) {
+          var vl = data.veeam.level;
+          var vLabel = vl==='complet' ? '✓ Veeam — Support complet' : vl==='beta' ? 'β Veeam — Support beta' : '⚠ Veeam — Support partiel';
+          var vCls = vl==='complet' ? 'ps-veeam-ok' : vl==='beta' ? 'ps-veeam-beta' : 'ps-veeam-partial';
+          h += '<div class="cmp-section-title" style="margin-top:14px">Veeam</div>';
+          h += '<div class="ps-veeam-level '+vCls+'" style="margin-bottom:0">'+vLabel+'</div>';
+        }
+        return h;
+      }
+
+      if (tab === 'licensing') {
+        var h = '';
+        var lic = data.licensing || {};
+        (lic.plans||[]).forEach(function(p){
+          h += '<div class="ps-price-block"><div class="ps-price-block-title">'+p.name+' — <strong>'+p.price+'</strong></div><p>'+p.desc+'</p></div>';
+        });
+        if (lic.notes) h += '<p class="cmp-note">'+lic.notes+'</p>';
+        return h;
+      }
+
+      if (tab === 'options') {
+        var h = '<table class="ps-table">';
+        (data.options||[]).forEach(function(o){ h += '<tr><td style="font-weight:600">'+o.name+'</td><td>'+o.desc+'</td></tr>'; });
+        h += '</table>';
+        return h;
+      }
+
+      if (tab === 'tech') {
+        var h = '<div class="ps-spec-grid">';
+        (data.tech||[]).forEach(function(t){ h += '<div class="ps-spec-item"><div class="ps-spec-item-label">'+t.label+'</div><div class="ps-spec-item-value">'+t.value+'</div></div>'; });
+        h += '</div>';
+        if (data.veeam) {
+          var vl = data.veeam.level;
+          var lbl = vl==='complet' ? '✓ Support complet' : vl==='beta' ? 'β Support en cours (beta)' : '⚠ Partiel';
+          var cls = vl==='complet' ? 'ps-veeam-ok' : vl==='beta' ? 'ps-veeam-beta' : 'ps-veeam-partial';
+          h += '<div class="ps-veeam-section"><div class="ps-section-title" style="margin-top:1rem">Compatibilité Veeam</div>';
+          h += '<div class="ps-veeam-level '+cls+'">'+lbl+'</div><div class="ps-veeam-grid">';
+          (data.veeam.features||[]).forEach(function(f){
+            var sc = f.status==='ok'?'ps-vf-ok':f.status==='beta'?'ps-vf-beta':'ps-vf-na';
+            var ic = f.status==='ok'?'✓':f.status==='beta'?'β':'—';
+            h += '<div class="ps-veeam-row '+sc+'"><span class="ps-vf-icon">'+ic+'</span>'+f.label+'</div>';
+          });
+          h += '</div></div>';
+        }
+        return h;
+      }
+
+      if (tab === 'migration') {
+        var h = '<table class="ps-table">';
+        (data.migration||[]).forEach(function(m){ h += '<tr><td>'+m.label+'</td><td>'+m.value+'</td></tr>'; });
+        h += '</table>';
+        return h;
+      }
+
+      if (tab === 'hardware') {
+        if (!data.hardware || !data.hardware.length) return '<p class="text-muted" style="padding:1rem 0">Architecture de référence non renseignée.</p>';
+        var h = '';
+        data.hardware.forEach(function(hw){
+          var tc = hw.type==='HCI' ? 'ps-hw-badge-hci' : 'ps-hw-badge-3tier';
+          h += '<div class="ps-hw-card">';
+          h += '<div class="ps-hw-card-header"><span class="ps-hw-badge '+tc+'">'+hw.type+'</span><span class="ps-hw-label">'+hw.label+'</span></div>';
+          h += '<div class="ps-hw-topology">'+hw.topology+'</div>';
+          h += '<div class="ps-hw-section-title">Par nœud</div><div class="ps-hw-grid">';
+          h += '<div class="ps-hw-stat"><div class="ps-hw-stat-label">CPU</div><div class="ps-hw-stat-value">'+hw.perNode.cpu+'</div></div>';
+          h += '<div class="ps-hw-stat"><div class="ps-hw-stat-label">RAM</div><div class="ps-hw-stat-value">'+hw.perNode.ram+'</div></div>';
+          h += '<div class="ps-hw-stat"><div class="ps-hw-stat-label">Stockage</div><div class="ps-hw-stat-value">'+hw.perNode.storage+'</div></div>';
+          h += '<div class="ps-hw-stat"><div class="ps-hw-stat-label">Réseau</div><div class="ps-hw-stat-value">'+hw.perNode.network+'</div></div>';
+          h += '</div>';
+          if (hw.san) h += '<div class="ps-hw-san"><strong>SAN :</strong> '+hw.san+'</div>';
+          var c = hw.cluster;
+          h += '<div class="ps-hw-section-title">Cluster ('+hw.nodes+' nœuds)</div><div class="ps-hw-cluster-grid">';
+          h += '<div class="ps-hw-c"><div class="ps-hw-c-val">'+c.coresRaw+'</div><div class="ps-hw-c-label">cœurs bruts</div></div>';
+          h += '<div class="ps-hw-c"><div class="ps-hw-c-val">'+c.coresProtected+'</div><div class="ps-hw-c-label">cœurs protégés</div></div>';
+          h += '<div class="ps-hw-c"><div class="ps-hw-c-val">'+c.ramRaw+'</div><div class="ps-hw-c-label">RAM brute</div></div>';
+          h += '<div class="ps-hw-c"><div class="ps-hw-c-val">'+c.ramProtected+'</div><div class="ps-hw-c-label">RAM utile</div></div>';
+          h += '<div class="ps-hw-c"><div class="ps-hw-c-val">'+c.storageRaw+'</div><div class="ps-hw-c-label">stockage brut</div></div>';
+          h += '<div class="ps-hw-c ps-hw-c-highlight"><div class="ps-hw-c-val">'+c.storageUsable+'</div><div class="ps-hw-c-label">stockage utile</div></div>';
+          h += '</div><div class="ps-hw-notes">'+c.notes+'</div></div>';
+        });
+        return h;
+      }
+      return '';
+    }
+
+    var _cmpTab = 'overview';
+    var _cmpNames = [];
+
+    function renderCmpCols() {
+      var cols = document.getElementById('cmpCols');
+      if (!cols) return;
+      cols.innerHTML = _cmpNames.map(function(name) {
+        var key = name.replace(' (Maintien actuel)',' (reference)').trim();
+        var data = PRODUCT_DATA[key];
+        var badges = data ? (data.badges||[]).map(function(b){ return '<span class="ps-badge">'+b+'</span>'; }).join('') : '';
+        return '<div class="cmp-col"><div class="cmp-col-header"><div class="cmp-col-name">'+name.replace(' (reference)','')+'</div><div class="cmp-col-badges">'+badges+'</div></div><div class="cmp-col-body">'+buildFicheColHtml(key, _cmpTab)+'</div></div>';
+      }).join('<div class="cmp-divider"></div>');
+    }
+
+    function openCompareModal() {
+      if (_compareList.length < 2) return;
+      _cmpNames = _compareList.slice(0,2);
+      _cmpTab = 'overview';
+      var title = _cmpNames.map(function(n){ return n.replace(' (reference)','').replace(' (Maintien actuel)',''); }).join(' ⟵▶ ');
+      document.getElementById('cmpTitle').textContent = title;
+      document.querySelectorAll('.cmp-tab').forEach(function(t){ t.classList.toggle('active', t.dataset.cmpTab === 'overview'); });
+      renderCmpCols();
+      document.getElementById('cmpModal').hidden = false;
+    }
+
+    function initCompareModal() {
+      var modal = document.getElementById('cmpModal');
+      if (!modal) return;
+      document.getElementById('cmpClose').addEventListener('click', function(){ modal.hidden = true; });
+      document.getElementById('cmpOverlay').addEventListener('click', function(e){ if (e.target === this) modal.hidden = true; });
+      document.querySelectorAll('.cmp-tab').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          _cmpTab = this.dataset.cmpTab;
+          document.querySelectorAll('.cmp-tab').forEach(function(t){ t.classList.remove('active'); });
+          this.classList.add('active');
+          renderCmpCols();
+        });
+      });
+    }
+
     function initProductSheetModal() {
       const modal = document.getElementById("productSheetModal");
       if (!modal) return;
@@ -5892,6 +6158,46 @@
         tab.classList.add("active");
         document.getElementById("ps-panel-" + tabId).classList.add("active");
       });
+    }
+
+    var _compareList = [];
+
+    function updateCompareBar() {
+      var bar = document.getElementById('compareBar');
+      if (!bar) return;
+      var lbl = document.getElementById('compareBtnLabel');
+      var btn = document.getElementById('compareLaunchBtn');
+      if (_compareList.length === 2) {
+        bar.style.display = 'flex';
+        if (lbl) lbl.textContent = _compareList.map(function(n){ return n.replace(' (reference)','').replace(' (Maintien actuel)',''); }).join(' ⟵▶ ');
+        if (btn) btn.disabled = false;
+      } else if (_compareList.length === 1) {
+        bar.style.display = 'flex';
+        if (lbl) lbl.textContent = _compareList[0].replace(' (reference)','') + ' — sélectionnez une 2ème cible';
+        if (btn) btn.disabled = true;
+      } else {
+        bar.style.display = 'none';
+      }
+    }
+
+    function toggleCompare(name, cb) {
+      var idx = _compareList.indexOf(name);
+      if (cb.checked) {
+        if (_compareList.length >= 2) { cb.checked = false; return; }
+        _compareList.push(name);
+      } else {
+        if (idx > -1) _compareList.splice(idx, 1);
+      }
+      document.querySelectorAll('.cmp-check').forEach(function(el) {
+        el.disabled = (_compareList.length >= 2 && !el.checked);
+      });
+      updateCompareBar();
+    }
+
+    function resetCompare() {
+      _compareList = [];
+      document.querySelectorAll('.cmp-check').forEach(function(el){ el.checked = false; el.disabled = false; });
+      updateCompareBar();
     }
 
     function renderCards(top, vmware) {
@@ -5912,7 +6218,10 @@
         // Feature 3 : H/semaine sur la carte
         var wl = computeWeeklyWorkload(solution, ans);
         var archBadge = solution.archType && solution.archType !== "both" ? "<span style=\"font-size:.78rem;background:var(--brand-light,#e0f2f1);color:var(--brand);border-radius:4px;padding:1px 6px;margin-left:.5rem;\">" + (solution.archType === "hci" ? "HCI" : "3-Tier SAN") + "</span>" : "";
+        var cbId = 'cmp_' + idx;
+        var safeName = solution.name.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
         return "<article class=\"card\">" +
+          "<label class=\"cmp-label\"><input type=\"checkbox\" class=\"cmp-check\" id=\"" + cbId + "\" onchange=\"toggleCompare('" + safeName + "',this)\">&#128202; Ajouter à la comparaison</label>" +
           "<h3>" + (idx + 1) + ". " + solution.name + archBadge + "</h3>" +
           "<p class=\"score\">Score " + solution.score + "/100 | Ecart vs VMware " + sign + delta + " | <strong>" + wl.total + "h/semaine estimees</strong></p>" +
           "<p class=\"text-muted\">" + describeDelta(delta) + " pour ce profil cible.</p>" +
@@ -5933,6 +6242,7 @@
       // Ajout de la carte VMware comme reference systematique
       const vmWl = computeWeeklyWorkload(vmware, ans);
       cards.innerHTML += "<article class=\"card reference\" style=\"border: 2px solid var(--brand); opacity: 0.95;\">" +
+        "<label class=\"cmp-label\"><input type=\"checkbox\" class=\"cmp-check\" onchange=\"toggleCompare('VMware (reference)',this)\">&#128202; Ajouter à la comparaison</label>" +
         "<div style=\"background:var(--brand);color:white;display:inline-block;padding:2px 8px;border-radius:4px;font-size:.7rem;margin-bottom:.5rem;font-weight:bold;\">BASELINE DE REFERENCE</div>" +
         "<h3>VMware (Maintien actuel)</h3>" +
         "<p class=\"score\">Score " + vmware.score + "/100 | Baseline | <strong>" + vmWl.total + "h/semaine</strong></p>" +
@@ -15932,6 +16242,7 @@
     updateAiVisibility();
     initMistralChat();
     initProductSheetModal();
+    initCompareModal();
     initGuideCopilot();
     initMatriceScoring();
     initCopilotInteractif();
