@@ -7738,6 +7738,7 @@
       if (!entry || !entry.snapshot) { alert("Impossible de charger cette analyse (donnees incompletes)."); return; }
       latestAnalysisResult = entry.snapshot;
       render(entry.snapshot);
+      if (typeof window._updateSolutionLeader === "function") window._updateSolutionLeader();
       document.getElementById("historyPanel").hidden = true;
     }
 
@@ -10327,6 +10328,7 @@
       }
       latestAnalysisResult = result;
       render(result);
+      if (typeof window._updateSolutionLeader === "function") window._updateSolutionLeader();
       renderPhase6Portfolio();
       appendPhaseBAuditEntry(result, validation);
       const elapsedMin = Math.max(1, Math.round((Date.now() - analysisSessionStart) / 60000));
