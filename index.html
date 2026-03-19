@@ -2344,6 +2344,7 @@
             <span class="ps-header-name" id="psTitle">—</span>
             <div class="ps-header-badges" id="psBadges"></div>
           </div>
+          <span id="pricingDateBadge" class="pricing-date-badge" title=""></span>
           <button class="ps-close" id="psClose" aria-label="Fermer">&times;</button>
         </div>
         <div class="ps-tabs" id="psTabs">
@@ -3290,6 +3291,48 @@
         profile: { linuxNeed: 8, supportDepth: 6, healthcareReady: 6, nsxFit: 3, containerFit: 5, vendorLockin: 9 },
         pros: ["Souverainete europeenne maximale (10/10)", "Licence open source sans cout editeur", "XOSTOR natif sur meme cluster"],
         cons: ["Ecosysteme en cours de consolidation", "Exige competence Linux elevee", "Migration a industrialiser avec outillage dedie"]
+      },
+      {
+        name: "Harvester (SUSE)",
+        archType: "hci",
+        veeamSupport: "none",
+        weeklyHours: { supervision: 5, lcm: 5, provisioning: 4, backups: 3, security: 3, incidents: 3, pra: 2.5 },
+        baseline: {
+          cost: 9,
+          migrationRisk: 5,
+          compatibility: 5,
+          maturity: 5,
+          sovereignty: 8,
+          security: 7,
+          operations: 5,
+          performance: 7,
+          reversibility: 8,
+          speed: 5
+        },
+        profile: { linuxNeed: 9, supportDepth: 5, healthcareReady: 5, nsxFit: 3, containerFit: 9, vendorLockin: 8 },
+        pros: ["Gratuit open-source (Apache 2.0)", "Convergence native VMs + conteneurs Kubernetes", "Souverainete elevee — aucune dependance editeur"],
+        cons: ["Maturite encore en progression (v1.x)", "Expertise Kubernetes avancee requise", "Ecosysteme de support a structurer"]
+      },
+      {
+        name: "Scale Computing HC3",
+        archType: "hci",
+        veeamSupport: "full",
+        weeklyHours: { supervision: 2, lcm: 2, provisioning: 2, backups: 1.5, security: 1.5, incidents: 1, pra: 1 },
+        baseline: {
+          cost: 8,
+          migrationRisk: 7,
+          compatibility: 7,
+          maturity: 8,
+          sovereignty: 7,
+          security: 7,
+          operations: 9,
+          performance: 7,
+          reversibility: 7,
+          speed: 8
+        },
+        profile: { linuxNeed: 2, supportDepth: 7, healthcareReady: 7, nsxFit: 3, containerFit: 4, vendorLockin: 5 },
+        pros: ["Administration ultra-simplifiee (HyperCore OS)", "Deploiement rapide — ideal collectivites", "Veeam Ready certifie"],
+        cons: ["Moins adapte aux grandes infrastructures (>200 VMs)", "Catalogue fonctionnel plus limite", "Presence integratrice FR a verifier"]
       }
     ];
 
@@ -5370,6 +5413,10 @@
     // ═══════════════════════════════════════════════════════════════
     //  FICHES PRODUIT — données détaillées par solution
     // ═══════════════════════════════════════════════════════════════
+    // Date de mise à jour des données tarifaires — à réviser à chaque renouvellement Broadcom
+    const PRICING_DATA_VERSION = "2026-03-19";
+    const PRICING_DATA_SOURCES = "Broadcom 2025-T4 | Nutanix pricer 2025 | Red Hat 2025 | SUSE 2025 | Scale Computing 2025";
+
     const PRODUCT_DATA = {
       "Proxmox VE": {
         badges: ["Open-source", "KVM", "HCI", "Secteur public"],
@@ -5896,6 +5943,132 @@
           { label: "Compétences requises", value: "Linux, Xen (Xapi), XO, DRBD/XOSTOR — formation Vates disponible" },
           { label: "Risque migration", value: "Modéré — écosystème solide mais plus restreint que VMware" }
         ]
+      },
+      "Harvester (SUSE)": {
+        badges: ["Open-source", "Kubernetes HCI", "KubeVirt", "SUSE", "Souveraineté"],
+        hardware: [
+          {
+            type: "HCI", label: "Architecture de référence — 5 nœuds Harvester v1.3+",
+            topology: "5 nœuds Harvester (min. 3, recommandé 5 pour production)",
+            nodes: 5,
+            perNode: { cpu: "2× AMD EPYC 9354 — 32 cœurs (64 c/nœud)", ram: "16× 32 Go DDR5 (512 Go/nœud)", storage: "2× 3,84 To NVMe (OS + cache) + 4× 7,68 To NVMe (Longhorn data)", network: "2× SFP28 25 Gbps (cluster VM) + 2× SFP28 25 Gbps (Longhorn réplication)" },
+            cluster: { coresRaw: "320 cœurs bruts", coresProtected: "80 cœurs utiles (overhead K3s+KubeVirt ~25%)", ramRaw: "2 560 Go brute", ramProtected: "640 Go utile (overhead Kubernetes ~25%)", storageRaw: "192 To brut (Longhorn)", storageUsable: "~64 To utile (RF×3)", notes: "Longhorn CSI réplication ×3 par défaut. Overhead Kubernetes significatif (etcd, controllers, monitoring). Pas de dédup natif Longhorn. SUSE Rancher Prime disponible pour support enterprise. Compatible AMD et Intel." }
+          }
+        ],
+        veeam: {
+          level: "partial",
+          features: [
+            { label: "Backup VMs", status: "na" }, { label: "VeeamZIP", status: "na" },
+            { label: "Backup Copies", status: "na" }, { label: "Application-aware Backup", status: "na" },
+            { label: "Guest File Indexing", status: "na" }, { label: "In-line scanning (malware)", status: "na" },
+            { label: "VM Replication", status: "na" }, { label: "CDP Replication", status: "na" },
+            { label: "Restore to source", status: "na" }, { label: "Instant Recovery", status: "na" },
+            { label: "Cross-platform Restore", status: "na" }, { label: "Application Item Restore", status: "na" },
+            { label: "File-level Recovery", status: "na" }, { label: "SureBackup / Datalab", status: "na" },
+            { label: "Backup Verification & Content Scan", status: "na" }
+          ]
+        },
+        licensing: {
+          plans: [
+            { name: "Community (gratuit)", desc: "Apache 2.0 — code source libre, GitHub SUSE. Aucun support officiel.", price: "0 €" },
+            { name: "SUSE Rancher Prime + Harvester", desc: "Support enterprise SUSE, mises à jour certifiées, SLA défini.", price: "Sur devis SUSE / nœud / an" },
+            { name: "Longhorn (stockage)", desc: "Inclus dans Harvester. Stockage bloc distribué Kubernetes natif, open-source.", price: "0 € (inclus)" },
+            { name: "Rancher Manager", desc: "Gestion multi-clusters Kubernetes depuis une interface unifiée.", price: "Inclus SUSE Rancher Prime" }
+          ],
+          notes: "Harvester est 100% open-source. La dépense est uniquement humaine (équipe K8s expérimentée) + optionnellement contrat SUSE Rancher Prime pour le support."
+        },
+        options: [
+          { name: "Harvester HCI", desc: "Hyperviseur HCI Kubernetes-native (KubeVirt) — gestion VMs et pods dans le même cluster." },
+          { name: "Longhorn", desc: "Stockage bloc distribué natif Kubernetes — réplication, snapshots, backups S3." },
+          { name: "SUSE Rancher Manager", desc: "Console multi-clusters Kubernetes — gestion centralisée de plusieurs clusters Harvester." },
+          { name: "KubeVirt", desc: "Module Kubernetes permettant l'exécution de VMs dans des pods K8s." },
+          { name: "Multus CNI", desc: "Support multi-NIC pour les VMs (réseau data + stockage séparés)." },
+          { name: "VM Import Controller", desc: "Migration VMs depuis VMware vSphere vers Harvester (inclus natif)." }
+        ],
+        tech: [
+          { label: "Hyperviseur", value: "KVM (via KubeVirt) — VMs gérées comme des pods Kubernetes" },
+          { label: "Plateforme", value: "K3s (Kubernetes lightweight) + SUSE Linux Enterprise" },
+          { label: "Stockage", value: "Longhorn (bloc distribué, S3 backup), NFS, iSCSI (CSI)" },
+          { label: "Réseau", value: "Flannel + Multus CNI — VLANs bridge Linux, VXLAN" },
+          { label: "HA VMs", value: "Kubernetes NodeFailure + KubeVirt LiveMigration" },
+          { label: "Live migration", value: "Oui — KubeVirt LiveMigration (sans interruption)" },
+          { label: "Sauvegarde Veeam", value: "Non supporté — utiliser Longhorn backup S3 ou Velero" },
+          { label: "API", value: "Kubernetes API + CRDs Harvester, kubectl, REST API" },
+          { label: "Authentification", value: "Rancher Auth (LDAP, AD, GitHub, SAML, OpenID)" },
+          { label: "Complexité", value: "Très élevée — expertise K8s + KubeVirt + Longhorn requise" },
+          { label: "Maturité", value: "En progression — v1.3 (2024), stable depuis v1.0 (2022)" }
+        ],
+        migration: [
+          { label: "Outil principal", value: "vm-import-controller (natif Harvester) + virt-v2v" },
+          { label: "Migration VMware", value: "vSphere → Harvester via vm-import-controller ou conversion VMDK→raw" },
+          { label: "Migration live", value: "Non depuis VMware — offline uniquement" },
+          { label: "Durée estimée", value: "12-24 mois — transformation profonde requise" },
+          { label: "Compétences requises", value: "Kubernetes avancé, KubeVirt, Longhorn, Linux, CNI networking" },
+          { label: "Risque migration", value: "Élevé — paradigme cloud-native, outil relativement jeune" }
+        ]
+      },
+      "Scale Computing HC3": {
+        badges: ["HCI", "SMB/Collectivités", "KVM", "Veeam Ready", "Simplicité"],
+        hardware: [
+          {
+            type: "HCI", label: "Scale Computing HC3 — 6 nœuds H150 (configuration type)",
+            topology: "6 nœuds HC3 H150 — SCRIBE OS (Scale Computing Runtime Integration Base)",
+            nodes: 6,
+            perNode: { cpu: "2× AMD EPYC 9354 — 32 cœurs (64 c/nœud)", ram: "16× 32 Go DDR5 (512 Go/nœud)", storage: "4× 7,68 To NVMe (SCRIBE distribué)", network: "2× SFP28 25 Gbps (VM) + 2× 10 Gbps (management/réplication)" },
+            cluster: { coresRaw: "384 cœurs bruts", coresProtected: "128 cœurs utiles (N+1 HA)", ramRaw: "3 072 Go brute", ramProtected: "1 024 Go utile (N+1)", storageRaw: "184 To brut (SCRIBE)", storageUsable: "~92 To utile (RF×2 + DRR 1.2:1)", notes: "SCRIBE OS déduplication + compression inline native. HA automatique < 60s sans intervention. Administration 100% GUI — aucune CLI requise. Veeam Ready certifié. Déploiement possible en < 2h. Adapté aux collectivités sans équipe IT spécialisée." }
+          }
+        ],
+        veeam: {
+          level: "complet",
+          features: [
+            { label: "Backup VMs", status: "ok" }, { label: "VeeamZIP", status: "ok" },
+            { label: "Backup Copies", status: "ok" }, { label: "Application-aware Backup", status: "ok" },
+            { label: "Guest File Indexing", status: "ok" }, { label: "In-line scanning (malware)", status: "ok" },
+            { label: "VM Replication", status: "ok" }, { label: "CDP Replication", status: "na" },
+            { label: "Restore to source", status: "ok" }, { label: "Instant Recovery", status: "ok" },
+            { label: "Cross-platform Restore", status: "ok" }, { label: "Application Item Restore", status: "ok" },
+            { label: "File-level Recovery", status: "ok" }, { label: "SureBackup / Datalab", status: "ok" },
+            { label: "Backup Verification & Content Scan", status: "ok" }
+          ]
+        },
+        licensing: {
+          plans: [
+            { name: "HC3 Essentials", desc: "HyperCore OS inclus. HA automatique, stockage distribué SCRIBE, live migration.", price: "~900 € / nœud / an" },
+            { name: "HC3 Advanced", desc: "Essentials + réplication asynchrone multi-sites, snapshots granulaires avancés.", price: "~1 800 € / nœud / an" },
+            { name: "HC3 Remote Edge", desc: "Gestion multi-sites centralisée via Scale Computing Fleet Manager.", price: "Sur devis / site" },
+            { name: "Support 24/7", desc: "Remplacement matériel J+1, mises à jour incluses, support téléphonique dédié.", price: "Inclus dans l'abonnement" }
+          ],
+          notes: "Modèle tout-en-un : matériel + logiciel + support en abonnement annuel par nœud. TCO très compétitif pour les collectivités de petite et moyenne taille."
+        },
+        options: [
+          { name: "HyperCore OS", desc: "OS de virtualisation Scale Computing — 100% GUI, aucune CLI, gestion simplifiée." },
+          { name: "Fleet Manager", desc: "Console centralisée pour gérer plusieurs clusters HC3 sur des sites distants." },
+          { name: "VM Import Utility", desc: "Outil gratuit de migration VMware → HC3 — conversion VMDK + transfert réseau." },
+          { name: "DR as a Service", desc: "Réplication asynchrone vers site secondaire ou partenaire Scale Computing." },
+          { name: "Veeam Backup & Replication", desc: "Support Veeam Ready certifié — backup, restore, réplication pour HC3." },
+          { name: "Zerto", desc: "Réplication synchrone et DRaaS certifié pour les environnements HC3." }
+        ],
+        tech: [
+          { label: "Hyperviseur", value: "KVM (Type 1 bare-metal via HyperCore OS)" },
+          { label: "Architecture", value: "HCI native — compute + stockage sur chaque nœud" },
+          { label: "Stockage", value: "SCRIBE distribué — déduplication + compression inline, NVMe-first" },
+          { label: "Cluster max.", value: "64 nœuds par cluster" },
+          { label: "Haute dispo.", value: "HA automatique < 60s sans configuration manuelle" },
+          { label: "Live migration", value: "Oui — live migration transparente (équivalent vMotion)" },
+          { label: "Réseau", value: "Linux bridge, VLAN, VxLAN micro-segmentation" },
+          { label: "API", value: "REST API HyperCore complète — intégration Ansible, Terraform" },
+          { label: "Sauvegarde Veeam", value: "Support complet certifié — Veeam Ready for Virtualization" },
+          { label: "Authentification", value: "LDAP, Active Directory, RBAC local" },
+          { label: "Maturité", value: "Très élevée pour son segment — 14 ans, 25 000+ déploiements mondiaux" }
+        ],
+        migration: [
+          { label: "Outil principal", value: "VM Import Utility (GUI gratuit Scale Computing)" },
+          { label: "Migration VMware", value: "vSphere → HC3 via VM Import Utility — conversion VMDK, offline" },
+          { label: "Migration live", value: "Non depuis VMware — offline (fenêtre maintenance courte)" },
+          { label: "Durée estimée", value: "2-8 mois — migration rapide grâce à l'interface simplifiée" },
+          { label: "Compétences requises", value: "Administration Windows/Linux basique — aucune certification spécifique" },
+          { label: "Risque migration", value: "Faible — outil intégré éprouvé, simplicité opérationnelle maximale" }
+        ]
       }
     };
 
@@ -5913,6 +6086,19 @@
       document.getElementById("psTitle").textContent = name.replace(" (reference)", "");
       const badgesEl = document.getElementById("psBadges");
       badgesEl.innerHTML = (data.badges || []).map(b => `<span class="ps-badge">${b}</span>`).join("");
+
+      // Indicateur fraîcheur des données tarifaires
+      var pricingBadge = document.getElementById('pricingDateBadge');
+      if (pricingBadge) {
+        var updateDate = new Date(PRICING_DATA_VERSION);
+        var monthsOld = (Date.now() - updateDate.getTime()) / (1000 * 60 * 60 * 24 * 30.5);
+        var dateStr = updateDate.toLocaleDateString('fr-FR', {month: 'long', year: 'numeric'});
+        var isStale = monthsOld > 6;
+        var isVeryStale = monthsOld > 12;
+        pricingBadge.innerHTML = (isVeryStale ? '⚠️' : isStale ? '🟡' : '📅') + ' Tarifs : ' + dateStr + (isVeryStale ? ' — Vérifier avant décision' : '');
+        pricingBadge.className = 'pricing-date-badge ' + (isVeryStale ? 'pricing-very-stale' : isStale ? 'pricing-stale' : 'pricing-ok');
+        pricingBadge.title = 'Sources : ' + PRICING_DATA_SOURCES + '. Prix susceptibles d\'évoluer avec Broadcom.';
+      }
 
       // Onglet Licences
       const lic = data.licensing;

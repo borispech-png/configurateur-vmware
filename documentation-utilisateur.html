@@ -334,6 +334,7 @@
       <a href="#ch2">2. Prise en main rapide</a>
       <a href="#ch3">3. Guide pas a pas</a>
       <a href="#ch4">4. Lecture des resultats</a>
+      <a href="#ch4b">4b. Nouvelles fonctionnalites V2.0</a>
       <a href="#ch5">5. Parametrage avance</a>
       <a href="#ch6">6. Exemples d'utilisation</a>
       <a href="#ch7">7. Tableaux de reference</a>
@@ -512,13 +513,28 @@
           </thead>
           <tbody>
             <tr>
+              <td>Recapitulatif du profil analyse</td>
+              <td>Bande de chips affichant les reponses cles (type org, VMs, VMware, priorites, alertes). Confirme le contexte avant lecture des recommandations.</td>
+              <td>Verifier que les chips correspondent bien au client avant de presenter les resultats</td>
+            </tr>
+            <tr>
               <td>Score global</td>
-              <td>Score synthetique multicritere</td>
+              <td>Score synthetique multicritere sur 100</td>
               <td>Comparer avec VMware et les 3 premiers</td>
             </tr>
             <tr>
+              <td>Score par critere cle</td>
+              <td>5 barres visuelles (Cout, Souverainete, Vitesse migration, Risque, Operations). Code couleur: vert ≥7.5, orange ≥5.5, rouge &lt;5.5.</td>
+              <td>Identifier les criteres faibles et les croiser avec les priorites client</td>
+            </tr>
+            <tr>
+              <td>Facteurs du score</td>
+              <td>Section depliable listant les 4 regles du moteur ayant le plus impacte le score (+/-). Transparence totale du calcul.</td>
+              <td>Utiliser en entretien technique pour expliquer et defendre le classement</td>
+            </tr>
+            <tr>
               <td>Pourquoi oui / Pourquoi non</td>
-              <td>Explicabilite des facteurs</td>
+              <td>Explicabilite des facteurs selon les reponses du formulaire</td>
               <td>Valider en comite metier/technique</td>
             </tr>
             <tr>
@@ -533,6 +549,75 @@
             </tr>
           </tbody>
         </table>
+        <div class="toplink"><a href="#top">Retour au sommaire</a></div>
+      </section>
+
+      <section id="ch4b">
+        <h2>4b. &#127381; Nouvelles fonctionnalites V2.0</h2>
+
+        <h3>&#128202; Analyse Fonctionnelle Comparative</h3>
+        <p>Accessible via le bouton <strong>Analyse Fonctionnelle</strong> (mode Expert uniquement). Compare les editions VMware (Standard, ENT+, VVF, VCF) et les 5 solutions alternatives sur 63 fonctionnalites reparties en 12 categories.</p>
+        <table>
+          <thead>
+            <tr><th>Element</th><th>Description</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Slider de ponderation</td><td>Curseur 1 a 5 par fonctionnalite (P=1.0 par defaut). Impact: P1=0.8x, P2=0.9x, P3=1.0x, P4=1.1x, P5=1.2x.</td></tr>
+            <tr><td>Scores pre-definis</td><td>Chaque solution a des scores experts pre-renseignes. Le consultant ajuste les ponderations selon les besoins client, pas les scores eux-memes.</td></tr>
+            <tr><td>Bouton "?"</td><td>Tooltip explicatif sur chaque fonctionnalite. Disponible au survol de la souris.</td></tr>
+            <tr><td>Bande de score</td><td>Recapitulatif colore (vert/jaune/rouge) du score pondere total par solution, mis a jour en temps reel.</td></tr>
+            <tr><td>Edition VMware</td><td>Selectionner l'edition actuelle du client pour aligner les scores VMware correspondants.</td></tr>
+          </tbody>
+        </table>
+        <div class="note">
+          <strong>&#128204; Usage recommande:</strong> utiliser apres avoir genere les recommandations. Ajuster les sliders selon les fonctionnalites que le client utilise reellement (et non en theorie).
+        </div>
+
+        <h3>&#128202; Comparaison cote a cote (Fiches Produits)</h3>
+        <p>Sur les cartes de recommandation, cocher jusqu'a 2 cibles via <strong>Ajouter a la comparaison</strong>. La barre verte en bas de page apparait. Cliquer sur <strong>Comparer</strong> pour ouvrir la vue cote a cote.</p>
+        <table>
+          <thead>
+            <tr><th>Onglet</th><th>Contenu compare</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Vue globale</td><td>Badges, positionnement, tarification resumee, niveau Veeam</td></tr>
+            <tr><td>Licences &amp; Tarifs</td><td>Tous les plans tarifaires des 2 solutions cote a cote</td></tr>
+            <tr><td>Options</td><td>Modules et composants disponibles</td></tr>
+            <tr><td>Specs Tech</td><td>Caracteristiques techniques + grille compatibilite Veeam</td></tr>
+            <tr><td>Migration</td><td>Outils, duree estimee, competences requises, risque</td></tr>
+            <tr><td>Architecture</td><td>Configuration materielle de reference (nœuds, CPU, RAM, stockage, totaux cluster)</td></tr>
+          </tbody>
+        </table>
+
+        <h3>&#128640; Barre de progression enrichie</h3>
+        <p>La barre de progression du formulaire affiche desormais <strong>Etape X / 6</strong> et le pourcentage de champs saisis. Les etapes completees affichent un <strong>✓</strong> dans la barre de navigation. Utile pour guider le client dans le parcours questionnaire.</p>
+
+        <h3>&#128295; Nouvelles solutions (V2.0)</h3>
+        <table>
+          <thead>
+            <tr><th>Solution</th><th>Positionnement</th><th>Point fort</th><th>Attention</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Harvester (SUSE)</strong></td>
+              <td>HCI open-source Kubernetes-native (KubeVirt + Longhorn)</td>
+              <td>Convergence VMs + conteneurs, souverainete maximale, 0 € licence</td>
+              <td>Expertise Kubernetes avancee requise, maturite v1.x</td>
+            </tr>
+            <tr>
+              <td><strong>Scale Computing HC3</strong></td>
+              <td>HCI SMB/collectivites, administration ultra-simplifiee</td>
+              <td>Deploiement en 2h, gestion 100% GUI, Veeam Ready certifie</td>
+              <td>Moins adapte aux grandes infrastructures (&gt;200 VMs)</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>&#128197; Indicateur de fraicheur des donnees tarifaires</h3>
+        <p>Chaque fiche produit affiche un badge de date de mise a jour des tarifs (ex: <em>&#128197; Tarifs : mars 2026</em>). Le badge passe en <strong>orange</strong> apres 6 mois et en <strong>rouge</strong> apres 12 mois. Survoler le badge affiche les sources utilisees.</p>
+        <div class="note warn">
+          <strong>&#9888; Vigilance tarifs VMware:</strong> les prix Broadcom (VVF ~3 500 €/coeur/an, VCF ~5 400 €/coeur/an) evoluent lors de chaque cycle de renouvellement. Verifier les tarifs actuels aupres de Broadcom avant toute decision d'achat ou de comparaison chiffree.
+        </div>
         <div class="toplink"><a href="#top">Retour au sommaire</a></div>
       </section>
 
@@ -583,6 +668,24 @@
 
       <section id="ch7">
         <h2>7. &#128202; Tableaux de reference</h2>
+        <h3>Solutions disponibles dans le configurateur</h3>
+        <table>
+          <thead>
+            <tr><th>Solution</th><th>Type</th><th>Licence</th><th>Veeam</th><th>Profil cible</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Proxmox VE</td><td>HCI</td><td>Open-source (AGPL)</td><td>Partiel</td><td>Collectivites, budget contraint</td></tr>
+            <tr><td>Nutanix AHV</td><td>HCI</td><td>Inclus materiel Nutanix</td><td>Complet</td><td>Enterprise, migration rapide</td></tr>
+            <tr><td>XCP-ng + XOSTOR</td><td>HCI</td><td>Open-source (GPLv2)</td><td>Beta</td><td>Souverainete maximale (editeur FR)</td></tr>
+            <tr><td>Hyper-V / Azure Stack HCI</td><td>HCI / 3-Tier</td><td>Windows Server / Subscription</td><td>Complet</td><td>Environnements Microsoft-centric</td></tr>
+            <tr><td>OpenStack + KVM</td><td>3-Tier</td><td>Open-source (Apache)</td><td>Partiel</td><td>Grands parcs, cloud prive avance</td></tr>
+            <tr><td>OpenShift Virtualization</td><td>HCI</td><td>Red Hat (par coeur)</td><td>Beta</td><td>Modernisation cloud-native simultanee</td></tr>
+            <tr><td>HPE VME / Morpheus</td><td>HCI / 3-Tier</td><td>Lie au materiel HPE</td><td>Beta</td><td>Clients HPE existants, multi-cloud</td></tr>
+            <tr><td>Harvester (SUSE)</td><td>HCI</td><td>Open-source (Apache)</td><td>Non supporte</td><td>Projets cloud-native, competences K8s</td></tr>
+            <tr><td>Scale Computing HC3</td><td>HCI</td><td>Abonnement / noeud</td><td>Complet</td><td>PME/collectivites, simplicite maximale</td></tr>
+            <tr><td>VMware (reference)</td><td>HCI / 3-Tier</td><td>Subscription Broadcom</td><td>Complet</td><td>Baseline de comparaison</td></tr>
+          </tbody>
+        </table>
         <h3>Interpretation des niveaux de confiance</h3>
         <table>
           <thead>
@@ -670,6 +773,14 @@
         <p>Renseigner effectif, disponibilite et seniorite pour Technicien, Ingenieur et Chef de projet. Ajouter les profils "Autres" necessaires (RSSI, expert reseau, etc.). Le moteur ajuste ensuite les durees, le risque et met en avant le goulot principal.</p>
         <h3>Pourquoi la completude assistant n'est pas a 100% ?</h3>
         <p>La completude se base sur les etapes visitees du parcours assistant. Si une etape n'a pas ete ouverte, elle n'entre pas dans le calcul affiche, meme si certains champs sont deja pre-remplis.</p>
+        <h3>Comment interpreter les "Facteurs du score" sur une carte ?</h3>
+        <p>Cliquer sur la section depliable "&#128269; Facteurs du score" sur chaque carte pour voir les 4 regles du moteur ayant le plus impacte le score. Les entrees en vert indiquent un impact positif (ex: +0.07 vSphere 6 EOSL — migration urgente), en rouge un impact negatif (ex: -0.08 souverainete insuffisante). Utile pour expliquer un ecart de score inattendu.</p>
+        <h3>Comment utiliser la comparaison cote a cote ?</h3>
+        <p>Cocher jusqu'a 2 cibles sur les cartes de recommandation (case "Ajouter a la comparaison"). La barre verte s'affiche en bas de page. Cliquer sur "Comparer" pour ouvrir la vue a 6 onglets. La comparaison est disponible pour toutes les solutions ayant une fiche produit.</p>
+        <h3>Harvester ou Scale Computing — quelle difference principale ?</h3>
+        <p>Harvester (SUSE) est oriente cloud-native (convergence VMs + conteneurs Kubernetes) avec une complexite elevee mais une souverainete maximale et un cout logiciel nul. Scale Computing HC3 est oriente simplicite operationnelle maximale, adapte aux collectivites sans equipe IT specialisee, avec un deploiement possible en 2 heures.</p>
+        <h3>Que signifie le badge tarifaire rouge dans une fiche produit ?</h3>
+        <p>Le badge "Tarifs" rouge indique que les donnees tarifaires de la fiche ont plus de 12 mois. Orange = plus de 6 mois. Vert = moins de 6 mois. Survoler le badge affiche les sources utilisees lors de la derniere mise a jour. Toujours verifier les tarifs VMware directement aupres de Broadcom avant une decision d'achat.</p>
         <div class="toplink"><a href="#top">Retour au sommaire</a></div>
       </section>
 
@@ -814,9 +925,9 @@
 
   <script>
     (function() {
-      const DOC_VERSION = "V1.6";
-      const DOC_BUILD_TS = "2026-03-14T16:00:00.000Z";
-      const DOC_EVENT = "Ajout schema visuel assistant guide";
+      const DOC_VERSION = "V2.0";
+      const DOC_BUILD_TS = "2026-03-19T12:00:00.000Z";
+      const DOC_EVENT = "V2.0 — Nouvelles fonctionnalites: Analyse Fonctionnelle, comparaison cote a cote, score par critere, Harvester (SUSE), Scale Computing HC3, indicateur fraicheur tarifaire";
       const HISTORY_KEY = "vmwareUserDocVersionHistory";
       const nowIso = DOC_BUILD_TS;
       const nowFr = new Date(nowIso).toLocaleString("fr-FR");
