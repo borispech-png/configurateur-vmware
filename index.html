@@ -822,6 +822,10 @@
         <div class="step">5. Trajectoire</div>
         <div class="step">6. Budget et priorites</div>
       </div>
+      <div class="progress-meta-row">
+        <span id="progressStepLabel" class="progress-step-label">Étape 1 / 6</span>
+        <span id="progressPct" class="progress-pct-label">0 % saisi</span>
+      </div>
       <div class="progress-wrap">
         <div class="progress" id="progressBar"></div>
       </div>
@@ -1476,6 +1480,7 @@
       </div>
 
       <h2>Cibles recommandees & Comparaison VMware</h2>
+      <div id="recapStrip" class="recap-strip" hidden></div>
       <div class="cards" id="cards"></div>
 
       <!-- Feature 7 : Architecture materielle cible estimee -->
@@ -6200,6 +6205,71 @@
       updateCompareBar();
     }
 
+    // ── UX helpers ───────────────────────────────────────────────────
+    var _CRIT_DISPLAY = [
+      { key:'cost',          label:'Coût',              icon:'💰' },
+      { key:'sovereignty',   label:'Souveraineté',      icon:'🔒' },
+      { key:'speed',         label:'Vitesse migration', icon:'⚡' },
+      { key:'migrationRisk', label:'Risque migration',  icon:'🛡️' },
+      { key:'operations',    label:'Opérations run',    icon:'⚙️' }
+    ];
+
+    function buildCriteriaHtml(solution) {
+      var cs = solution.criterionScores;
+      if (!cs) return '';
+      var h = '<div class="card-criteria"><div class="card-crit-title">Score par critère clé</div>';
+      _CRIT_DISPLAY.forEach(function(c) {
+        var raw = cs[c.key] || 0;
+        var val = Math.min(10, Math.max(0, raw));
+        var pct = Math.round(val * 10);
+        var cls = val >= 7.5 ? 'crit-hi' : val >= 5.5 ? 'crit-mid' : 'crit-lo';
+        h += '<div class="card-crit-row">';
+        h += '<span class="card-crit-lbl">' + c.icon + ' ' + c.label + '</span>';
+        h += '<div class="card-crit-bar-wrap"><div class="card-crit-bar ' + cls + '" style="width:' + pct + '%"></div></div>';
+        h += '<span class="card-crit-val ' + cls + '">' + val.toFixed(1) + '</span>';
+        h += '</div>';
+      });
+      h += '</div>';
+      return h;
+    }
+
+    function buildRuleReasonsHtml(solution) {
+      var rr = solution.ruleReasons;
+      if (!rr || !rr.length) return '';
+      var h = '<details class="card-rules"><summary>&#128269; Facteurs du score (' + rr.length + ' règles actives)</summary><ul class="card-rules-list">';
+      rr.forEach(function(r) {
+        var pos = r.charAt(0) === '+';
+        h += '<li class="rule-item ' + (pos ? 'rule-pos' : 'rule-neg') + '">' + r + '</li>';
+      });
+      h += '</ul></details>';
+      return h;
+    }
+
+    function buildRecapStrip(answers) {
+      var chips = [];
+      var orgLabels = { collectivite:'Collectivité', ministere:'Ministère', sante:'Santé', social:'Social' };
+      if (answers.orgType && orgLabels[answers.orgType]) chips.push({ icon:'🏛️', text: orgLabels[answers.orgType], cls:'rchip-org' });
+      if (answers.vmCount > 0) chips.push({ icon:'🖥️', text: answers.vmCount + ' VMs', cls:'rchip-neutral' });
+      var vmvLabels = { vsphere6:'vSphere 6 (EOSL)', vsphere7:'vSphere 7', vsphere8:'vSphere 8', vsphere9:'vSphere 9' };
+      if (answers.vmwVersion && vmvLabels[answers.vmwVersion]) chips.push({ icon:'📦', text: vmvLabels[answers.vmwVersion], cls: answers.vmwVersion === 'vsphere6' ? 'rchip-warn' : 'rchip-neutral' });
+      var edLabels = { std:'Standard', ent:'ENT+', vvf:'VVF/Foundation', vcf:'VCF' };
+      if (answers.vmwEdition && edLabels[answers.vmwEdition]) chips.push({ icon:'📋', text: edLabels[answers.vmwEdition], cls:'rchip-neutral' });
+      if (answers.prioCost) chips.push({ icon:'💰', text: 'Priorité Coût', cls:'rchip-prio' });
+      if (answers.prioSov)  chips.push({ icon:'🔒', text: 'Priorité Souveraineté', cls:'rchip-prio' });
+      if (answers.prioRisk) chips.push({ icon:'🛡️', text: 'Priorité Risque', cls:'rchip-prio' });
+      if (answers.prioSpeed) chips.push({ icon:'⚡', text: 'Priorité Vitesse', cls:'rchip-prio' });
+      if (answers.prioReversibility) chips.push({ icon:'↩️', text: 'Priorité Réversibilité', cls:'rchip-prio' });
+      if (answers.healthData) chips.push({ icon:'🏥', text: 'Données de santé (HDS)', cls:'rchip-warn' });
+      if (answers.sovereigntyNeed === 'tres-fort') chips.push({ icon:'🇫🇷', text: 'Souveraineté maximale', cls:'rchip-warn' });
+      var exitH = answers.exitHorizon;
+      if (exitH) {
+        var horizonTxt = exitH <= 6 ? '< 6 mois ⚠' : exitH <= 12 ? '< 12 mois' : exitH + ' mois';
+        chips.push({ icon:'📅', text: 'Horizon ' + horizonTxt, cls: exitH <= 6 ? 'rchip-warn' : 'rchip-neutral' });
+      }
+      if (!chips.length) return '';
+      return '<span class="recap-label">Profil analysé :</span>' + chips.map(function(c){ return '<span class="recap-chip ' + c.cls + '">' + c.icon + ' ' + c.text + '</span>'; }).join('');
+    }
+
     function renderCards(top, vmware) {
       const cards = document.getElementById("cards");
       if (top.length === 0) {
@@ -6207,6 +6277,15 @@
         return;
       }
       const ans = getAnswers();
+
+      // Recap strip
+      var _recapStrip = document.getElementById('recapStrip');
+      if (_recapStrip) {
+        var _recapHtml = buildRecapStrip(ans);
+        _recapStrip.innerHTML = _recapHtml;
+        _recapStrip.hidden = !_recapHtml;
+      }
+
       cards.innerHTML = top.map((solution, idx) => {
         const delta = Number((solution.score - vmware.score).toFixed(1));
         const sign = delta > 0 ? "+" : "";
@@ -6235,6 +6314,8 @@
             "<div class=\"explain-box explain-no\"><strong>Pourquoi non</strong><br>" + explain.whyNo.join("<br>") + "</div>" +
             "<div class=\"explain-box explain-cond\"><strong>Conditions de succes</strong><br>" + explain.conditions.join("<br>") + "</div>" +
           "</div>" +
+          buildCriteriaHtml(solution) +
+          buildRuleReasonsHtml(solution) +
           (PRODUCT_DATA[solution.name] ? "<button class=\"btn-fiche-produit\" onclick=\"openProductSheet('" + solution.name.replace(/'/g, "\\'") + "')\">&#128196; Fiche produit</button>" : "") +
         "</article>";
       }).join("");
@@ -6961,10 +7042,30 @@
       const ratio = Math.round((reached / maxStep) * 100);
       document.getElementById("progressBar").style.width = ratio + "%";
 
+      // Step label
+      var stepLbl = document.getElementById('progressStepLabel');
+      if (stepLbl) stepLbl.textContent = 'Étape ' + formCurrentStep + ' / ' + maxStep;
+      var pctLbl = document.getElementById('progressPct');
+      if (pctLbl) pctLbl.textContent = ratio + ' % saisi';
+
+      // Complétion par étape (done class)
+      const filledSteps = new Set();
+      for (let s = 1; s <= maxStep; s++) {
+        const sf = Array.from(document.querySelectorAll("[data-step='" + s + "']"));
+        if (sf.some(function(f){ return f.type === 'checkbox' ? f.checked : String(f.value||'').trim() !== ''; })) filledSteps.add(s);
+      }
+
       const steps = document.querySelectorAll("#stepsBar .step");
       steps.forEach((stepNode, index) => {
-        stepNode.classList.toggle("active", index + 1 <= reached);
-        stepNode.classList.toggle("current", index + 1 === formCurrentStep);
+        const sNum = index + 1;
+        stepNode.classList.toggle("active", sNum <= reached);
+        stepNode.classList.toggle("current", sNum === formCurrentStep);
+        const done = filledSteps.has(sNum) && sNum !== formCurrentStep;
+        stepNode.classList.toggle("done", done);
+        // Tick checkmark
+        const orig = stepNode.getAttribute('data-orig-text') || stepNode.textContent.replace(' ✓','').trim();
+        stepNode.setAttribute('data-orig-text', orig);
+        stepNode.textContent = done ? orig + ' ✓' : orig;
       });
 
       updateLiveSummary();
