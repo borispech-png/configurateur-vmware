@@ -1479,8 +1479,29 @@
         <span id="decisionStatusText" class="decision-status-ok"></span>
       </div>
 
-      <h2>Cibles recommandees & Comparaison VMware</h2>
+      <div class="results-heading-row">
+        <h2>Cibles recommandees &amp; Comparaison VMware</h2>
+        <button id="whatIfToggleBtn" class="whatif-toggle-btn" hidden title="Simuler l'impact d'un changement de pondération">&#127922; Simuler</button>
+      </div>
       <div id="recapStrip" class="recap-strip" hidden></div>
+      <div id="whatIfPanel" class="whatif-panel" hidden>
+        <div class="whatif-header">
+          <span class="whatif-title">&#127922; Simulation — pondérations en temps réel</span>
+          <div style="display:flex;gap:6px;align-items:center;">
+            <button id="whatIfReset" class="secondary btn-sm" type="button">&#8617; Réinitialiser</button>
+            <button id="whatIfClose" class="whatif-close" type="button">&times;</button>
+          </div>
+        </div>
+        <p class="whatif-desc">Ajustez les curseurs pour voir l'impact sur le classement en temps réel. <em>Les scores affichés sont simulés</em> — relancez l'analyse pour valider définitivement.</p>
+        <div id="whatIfIndicator" class="whatif-indicator"></div>
+        <div class="whatif-sliders">
+          <div class="wif-row"><span class="wif-lbl">&#128176; Co&ucirc;t</span><input type="range" id="wif_cost" class="wif-range" min="0.5" max="3" step="0.1" value="1"><span class="wif-val" id="wif_disp_cost">&times;1.0</span></div>
+          <div class="wif-row"><span class="wif-lbl">&#128274; Souveraineté</span><input type="range" id="wif_sovereignty" class="wif-range" min="0.5" max="3" step="0.1" value="1"><span class="wif-val" id="wif_disp_sovereignty">&times;1.0</span></div>
+          <div class="wif-row"><span class="wif-lbl">&#128737;&#65039; Risque migration</span><input type="range" id="wif_migrationRisk" class="wif-range" min="0.5" max="3" step="0.1" value="1"><span class="wif-val" id="wif_disp_migrationRisk">&times;1.0</span></div>
+          <div class="wif-row"><span class="wif-lbl">&#9889; Vitesse</span><input type="range" id="wif_speed" class="wif-range" min="0.5" max="3" step="0.1" value="1"><span class="wif-val" id="wif_disp_speed">&times;1.0</span></div>
+          <div class="wif-row"><span class="wif-lbl">&#8617;&#65039; Réversibilité</span><input type="range" id="wif_reversibility" class="wif-range" min="0.5" max="3" step="0.1" value="1"><span class="wif-val" id="wif_disp_reversibility">&times;1.0</span></div>
+        </div>
+      </div>
       <div class="cards" id="cards"></div>
 
       <!-- Feature 7 : Architecture materielle cible estimee -->
@@ -6334,6 +6355,109 @@
       });
     }
 
+    // ── What-If / Sensitivity panel ─────────────────────────────────────
+    var _WIF_KEYS = ['cost', 'sovereignty', 'migrationRisk', 'speed', 'reversibility'];
+
+    function _wifSliderValues() {
+      var out = {};
+      _WIF_KEYS.forEach(function(k) {
+        var el = document.getElementById('wif_' + k);
+        out[k] = el ? parseFloat(el.value) : 1.0;
+      });
+      return out;
+    }
+
+    function recomputeWhatIf() {
+      if (!latestAnalysisResult || !latestAnalysisResult.weights) return;
+
+      // Update displayed ×N.N labels
+      var mults = _wifSliderValues();
+      _WIF_KEYS.forEach(function(k) {
+        var disp = document.getElementById('wif_disp_' + k);
+        if (disp) disp.textContent = '\u00d7' + mults[k].toFixed(1);
+      });
+
+      // Apply multipliers on stored normalized weights then re-normalize
+      var baseW = Object.assign({}, latestAnalysisResult.weights);
+      _WIF_KEYS.forEach(function(k) { baseW[k] = (baseW[k] || 0) * mults[k]; });
+      var sum = criteria.reduce(function(acc, k) { return acc + (baseW[k] || 0); }, 0);
+      if (!sum) return;
+      var newW = {};
+      criteria.forEach(function(k) { newW[k] = baseW[k] / sum; });
+
+      // Rescore all solutions (use stored ruleMultiplier)
+      var allSols = (latestAnalysisResult.top || []).slice();
+      if (latestAnalysisResult.vmware) allSols.push(latestAnalysisResult.vmware);
+      var rescored = allSols.map(function(s) {
+        return Object.assign({}, s, {
+          score: computeScore(s, newW, latestAnalysisResult.answers, s.ruleMultiplier)
+        });
+      }).sort(function(a, b) { return b.score - a.score; });
+
+      var newVmware = rescored.find(function(s) { return s.name === 'VMware (reference)'; }) || latestAnalysisResult.vmware;
+      var origCount = (latestAnalysisResult.top || []).length;
+      var newTop = rescored.filter(function(s) { return s.name !== 'VMware (reference)'; }).slice(0, origCount);
+
+      // Detect ranking change
+      var origNames = (latestAnalysisResult.top || []).map(function(s) { return s.name; }).join(',');
+      var newNames  = newTop.map(function(s) { return s.name; }).join(',');
+      var ind = document.getElementById('whatIfIndicator');
+      if (ind) {
+        if (origNames !== newNames) {
+          var newLeader = newTop[0] ? newTop[0].name : '—';
+          var origLeader = latestAnalysisResult.top[0] ? latestAnalysisResult.top[0].name : '—';
+          var msg = newLeader !== origLeader
+            ? '&#9650; Classement modifié — <strong>' + newLeader + '</strong> passe en tête (était : ' + origLeader + ')'
+            : '&#9650; Classement modifié';
+          ind.innerHTML = msg;
+          ind.className = 'whatif-indicator whatif-changed';
+        } else {
+          ind.innerHTML = '&#10003; Le classement reste identique avec ces pondérations';
+          ind.className = 'whatif-indicator whatif-same';
+        }
+      }
+
+      renderCards(newTop, newVmware);
+    }
+
+    function resetWhatIf() {
+      _WIF_KEYS.forEach(function(k) {
+        var sl = document.getElementById('wif_' + k);
+        if (sl) sl.value = '1';
+        var disp = document.getElementById('wif_disp_' + k);
+        if (disp) disp.textContent = '\u00d71.0';
+      });
+      var ind = document.getElementById('whatIfIndicator');
+      if (ind) { ind.innerHTML = ''; ind.className = 'whatif-indicator'; }
+      if (latestAnalysisResult) renderCards(latestAnalysisResult.top, latestAnalysisResult.vmware);
+    }
+
+    function initWhatIfPanel() {
+      _WIF_KEYS.forEach(function(k) {
+        var sl = document.getElementById('wif_' + k);
+        if (sl) sl.addEventListener('input', recomputeWhatIf);
+      });
+      var resetBtn = document.getElementById('whatIfReset');
+      if (resetBtn) resetBtn.addEventListener('click', resetWhatIf);
+
+      var closeBtn = document.getElementById('whatIfClose');
+      if (closeBtn) closeBtn.addEventListener('click', function() {
+        document.getElementById('whatIfPanel').hidden = true;
+        var tb = document.getElementById('whatIfToggleBtn');
+        if (tb) tb.textContent = '\u127922 Simuler';
+        resetWhatIf();
+      });
+
+      var toggleBtn = document.getElementById('whatIfToggleBtn');
+      if (toggleBtn) toggleBtn.addEventListener('click', function() {
+        var panel = document.getElementById('whatIfPanel');
+        panel.hidden = !panel.hidden;
+        toggleBtn.textContent = panel.hidden ? '\u127922 Simuler' : '\u127922 Fermer sim.';
+        if (panel.hidden) resetWhatIf();
+      });
+    }
+    // ────────────────────────────────────────────────────────────────────
+
     function initProductSheetModal() {
       const modal = document.getElementById("productSheetModal");
       if (!modal) return;
@@ -10329,6 +10453,10 @@
       latestAnalysisResult = result;
       render(result);
       if (typeof window._updateSolutionLeader === "function") window._updateSolutionLeader();
+      // Reveal Simulate button and reset what-if sliders
+      var wifBtn = document.getElementById('whatIfToggleBtn');
+      if (wifBtn) wifBtn.hidden = false;
+      resetWhatIf();
       renderPhase6Portfolio();
       appendPhaseBAuditEntry(result, validation);
       const elapsedMin = Math.max(1, Math.round((Date.now() - analysisSessionStart) / 60000));
@@ -16555,6 +16683,7 @@
     initMistralChat();
     initProductSheetModal();
     initCompareModal();
+    initWhatIfPanel();
     initGuideCopilot();
     initMatriceScoring();
     initCopilotInteractif();

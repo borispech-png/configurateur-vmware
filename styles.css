@@ -4902,3 +4902,28 @@ body.guide-mode hr.expert-only     { display: none !important; }
 .func-vision-section textarea { width: 100%; resize: vertical; padding: 8px 10px; border: 1px solid var(--line,#d6e3df); border-radius: 6px; font-size: .82rem; box-sizing: border-box; min-height: 64px; }
 .func-vision-actions { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
 .func-vision-ai-result { margin-top: 8px; padding: 10px 14px; background: var(--bg,#eff5f2); border-radius: 8px; font-size: .83rem; line-height: 1.6; border-left: 3px solid var(--brand,#006d5d); }
+
+/* ── What-If / Sensitivity panel ─────────────────────────────── */
+.results-heading-row { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:.5rem; }
+.results-heading-row h2 { margin:0; }
+.whatif-toggle-btn { background:linear-gradient(135deg,#f0fdf4,#d1fae5); border:1px solid #6ee7b7; color:#065f46; font-weight:700; font-size:.82rem; padding:5px 14px; border-radius:20px; cursor:pointer; white-space:nowrap; transition:background .15s; }
+.whatif-toggle-btn:hover { background:#bbf7d0; }
+.whatif-panel { background:#f0fdf4; border:1px solid #bbf7d0; border-radius:12px; padding:14px 16px; margin-bottom:12px; }
+.whatif-header { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:6px; }
+.whatif-title { font-size:.9rem; font-weight:700; color:#065f46; }
+.whatif-close { background:none; border:none; font-size:1.3rem; cursor:pointer; color:#6b7280; padding:0 4px; line-height:1; }
+.whatif-desc { font-size:.78rem; color:#374151; margin:0 0 10px; }
+.whatif-indicator { font-size:.8rem; font-weight:600; padding:6px 12px; border-radius:6px; margin-bottom:10px; }
+.whatif-indicator:empty { display:none; padding:0; margin:0; }
+.whatif-changed { background:#fef9c3; color:#92400e; border:1px solid #fde68a; }
+.whatif-same { background:#d1fae5; color:#065f46; border:1px solid #6ee7b7; }
+.whatif-sliders { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:8px 24px; }
+.wif-row { display:grid; grid-template-columns:130px 1fr 38px; align-items:center; gap:8px; }
+.wif-lbl { font-size:.79rem; color:#374151; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.wif-range { width:100%; accent-color:var(--brand,#006d5d); cursor:pointer; }
+.wif-val { font-size:.8rem; font-weight:700; color:var(--brand,#006d5d); text-align:right; }
+html[data-theme="dark"] .whatif-panel { background:#0d2a20; border-color:#1a4a38; }
+html[data-theme="dark"] .whatif-title { color:#6ee7b7; }
+html[data-theme="dark"] .whatif-desc { color:#9ca3af; }
+html[data-theme="dark"] .whatif-same { background:#0f3d28; border-color:#166534; }
+html[data-theme="dark"] .whatif-changed { background:#3b2700; border-color:#92400e; color:#fde68a; }
