@@ -15,8 +15,6 @@
       --brand2: #005f86;
       --accent: #e9f6f2;
       --warn: #fff5de;
-      --purple: #7c3aed;
-      --purple-light: #ede9fe;
     }
 
     * {
@@ -82,16 +80,6 @@
       border-color: #cde3db;
     }
 
-    .toc a.new {
-      color: var(--purple);
-      font-weight: 700;
-    }
-
-    .toc a.new::after {
-      content: " ✦";
-      font-size: 0.7rem;
-    }
-
     .content {
       padding: 0.9rem;
     }
@@ -155,19 +143,10 @@
       margin-bottom: 0.75rem;
     }
 
-    section.new-section {
-      border-color: #c4b5fd;
-      background: linear-gradient(135deg, #fdfcff 0%, #f8f4ff 100%);
-    }
-
     section h2 {
       margin: 0 0 0.5rem;
       color: var(--brand);
       font-size: 1.05rem;
-    }
-
-    section.new-section h2 {
-      color: var(--purple);
     }
 
     h3 {
@@ -202,23 +181,12 @@
       font-weight: 700;
     }
 
-    .chip.new {
-      border-color: #c4b5fd;
-      background: var(--purple-light);
-      color: var(--purple);
-    }
-
     .note {
       border: 1px dashed #cbded8;
       background: #f9fdfb;
       border-radius: 10px;
       padding: 0.6rem;
       margin-top: 0.4rem;
-    }
-
-    .note.purple {
-      border-color: #c4b5fd;
-      background: #faf8ff;
     }
 
     table {
@@ -305,33 +273,6 @@
       z-index: 2;
     }
 
-    .hub-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 0.5rem;
-      margin: 0.55rem 0;
-    }
-
-    .hub-item {
-      border: 1px solid #c4b5fd;
-      background: var(--purple-light);
-      border-radius: 10px;
-      padding: 0.55rem 0.7rem;
-    }
-
-    .hub-item strong {
-      display: block;
-      color: var(--purple);
-      font-size: 0.82rem;
-      margin-bottom: 0.18rem;
-    }
-
-    .hub-item span {
-      color: #4a3a6b;
-      font-size: 0.78rem;
-      line-height: 1.35;
-    }
-
     .toplink {
       text-align: right;
       margin-top: 0.35rem;
@@ -349,19 +290,6 @@
       color: var(--muted);
       font-size: 0.82rem;
       margin-top: 0.65rem;
-    }
-
-    .badge-new {
-      display: inline-block;
-      background: var(--purple);
-      color: #fff;
-      font-size: 0.65rem;
-      font-weight: 800;
-      border-radius: 4px;
-      padding: 0.05rem 0.35rem;
-      margin-left: 0.3rem;
-      vertical-align: middle;
-      letter-spacing: 0.04em;
     }
 
     @media (max-width: 1080px) {
@@ -395,10 +323,6 @@
       .assistant-flow {
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
-
-      .hub-grid {
-        grid-template-columns: 1fr;
-      }
     }
   </style>
 </head>
@@ -412,13 +336,12 @@
       <a href="#ch4">4. Lecture des resultats</a>
       <a href="#ch5">5. Parametrage avance</a>
       <a href="#ch6">6. Exemples d'utilisation</a>
-      <a href="#ch_phase4" class="new">7. Phase 4 — Hub IA &amp; UX</a>
-      <a href="#ch7">8. Tableaux de reference</a>
-      <a href="#ch8">9. FAQ</a>
-      <a href="#ch9">10. Raccourcis</a>
-      <a href="#ch10">11. Glossaire</a>
-      <a href="#ch11">12. Version et horodatage</a>
-      <a href="#ch12">13. Support et gouvernance</a>
+      <a href="#ch7">7. Tableaux de reference</a>
+      <a href="#ch8">8. FAQ</a>
+      <a href="#ch9">9. Raccourcis</a>
+      <a href="#ch10">10. Glossaire</a>
+      <a href="#ch11">11. Version et horodatage</a>
+      <a href="#ch12">12. Support et gouvernance</a>
     </aside>
 
     <main class="panel content">
@@ -438,7 +361,7 @@
           </div>
           <div class="meta-box">
             <div class="meta-label">Version courante</div>
-            <div class="meta-value" id="docVersion">V2.0</div>
+            <div class="meta-value" id="docVersion">V1.6</div>
           </div>
           <div class="meta-box">
             <div class="meta-label">Horodatage auto</div>
@@ -449,16 +372,16 @@
 
       <section id="ch1">
         <h2>1. &#127919; Introduction</h2>
-        <p>Ce document explique l'utilisation complete de l'application : saisie des donnees, interpretation des recommandations, validation de conformite, production des exports et pilotage phase 1 a phase 8. La version V2.0 integre le <strong>Hub IA</strong> et l'ensemble des fonctionnalites de raffinement UX (Phase 4).</p>
+        <p>Ce document explique l'utilisation complete de l'application: saisie des donnees, interpretation des recommandations, validation de conformite, production des exports et pilotage phase 1 a phase 8.</p>
         <div>
-          <span class="chip">Public cible : DSI</span>
+          <span class="chip">Public cible: DSI</span>
           <span class="chip">RSSI</span>
           <span class="chip">Achats publics</span>
           <span class="chip">Architecture</span>
           <span class="chip">Direction</span>
         </div>
         <div class="note">
-          <strong>&#128204; Finalite :</strong> produire une recommandation argumentee face a VMware, tracer les hypotheses et securiser les decisions de comite. En V2.0, le Hub IA centralise tous les outils d'intelligence artificielle en un seul acces.
+          <strong>&#128204; Finalite:</strong> produire une recommandation argumentee face a VMware, tracer les hypotheses et securiser les decisions de comite.
         </div>
         <div class="toplink"><a href="#top">Retour au sommaire</a></div>
       </section>
@@ -466,12 +389,12 @@
       <section id="ch2">
         <h2>2. &#9889; Prise en main rapide</h2>
         <ol>
-          <li>Cliquer sur <strong>&#8962; Accueil</strong> pour revenir a la page d'accueil a tout moment.</li>
           <li>Choisir entre questionnaire classique ou assistant visuel (fil d'ariane).</li>
           <li>Renseigner le profil organisationnel et les contraintes.</li>
-          <li>Observer le <strong>widget Solution Leader</strong> (bas gauche) qui se met a jour en temps reel.</li>
-          <li>Utiliser le bouton <strong>&#9881; AI Hub</strong> ou <span class="kdb">Ctrl</span>+<span class="kdb">K</span> pour acceder a tous les outils IA.</li>
-          <li>Lancer l'analyse, verifier la recommandation, puis ajuster si besoin.</li>
+          <li>Lancer l'analyse.</li>
+          <li>Generer un retroplanning Gantt puis ajuster les profils (Technicien, Ingenieur, Chef de projet, Autres).</li>
+          <li>Verifier la recommandation, les justifications et les vigilances.</li>
+          <li>Ajuster les seuils si necessaire et verifier le statut "Pret comite".</li>
           <li>Exporter en PDF, Excel ou dossier comite.</li>
         </ol>
         <table>
@@ -503,11 +426,6 @@
               <td>Basculer en affichage simplifie</td>
               <td>Facilite presentation et arbitrage en comite</td>
             </tr>
-            <tr>
-              <td>AI Hub <span class="badge-new">V2.0</span></td>
-              <td>Panneau lateral centralisant tous les outils IA</td>
-              <td>Acces direct : Copilot, Chat, Scenarios, Rapport, Planning</td>
-            </tr>
           </tbody>
         </table>
         <div class="toplink"><a href="#top">Retour au sommaire</a></div>
@@ -532,7 +450,7 @@
         <h3>Etape 8 - Validation qualite</h3>
         <p>Executer les tests phase B et la recette comite C + D pour obtenir un verdict PASS/ALERTE avant diffusion.</p>
         <h3>Parcours Assistant guide (fil d'ariane)</h3>
-        <p>L'assistant visuel est un parcours modal en 6 etapes : <strong>Profil</strong>, <strong>Contexte</strong>, <strong>Reglementaire</strong>, <strong>Equipes</strong>, <strong>Trajectoire</strong>, <strong>Arbitrage</strong>.</p>
+        <p>L'assistant visuel est un parcours modal en 6 etapes: <strong>Profil</strong>, <strong>Contexte</strong>, <strong>Reglementaire</strong>, <strong>Equipes</strong>, <strong>Trajectoire</strong>, <strong>Arbitrage</strong>.</p>
         <p>Il est accessible depuis le bouton <em>Assistant guide (fil d'ariane)</em> ou depuis <em>Ouvrir l'assistant sur cette etape</em> dans le formulaire.</p>
         <div class="assistant-flow" aria-label="Schema des etapes de l'assistant guide">
           <div class="assistant-flow-step"><strong>1. Profil</strong><span>Type d'organisation, VM, criticite</span></div>
@@ -552,7 +470,7 @@
           <tbody>
             <tr>
               <td>Scenarios pre-remplis</td>
-              <td>4 scenarios disponibles : Collectivite, Ministere, Sante, Social, avec application automatique des champs de l'assistant.</td>
+              <td>4 scenarios disponibles: Collectivite, Ministere, Sante, Social, avec application automatique des champs de l'assistant.</td>
             </tr>
             <tr>
               <td>Completude</td>
@@ -571,17 +489,13 @@
               <td>Possible par bouton <em>Fermer</em>, clic sur l'overlay externe, ou touche <span class="kdb">Echap</span>.</td>
             </tr>
             <tr>
-              <td>Analyser ma config <span class="badge-new">V2.0</span></td>
-              <td>Envoie le profil complet au chat Expert VMware pour analyse IA immediate. Le chat s'ouvre automatiquement.</td>
-            </tr>
-            <tr>
               <td>Workflow comite (etape 6)</td>
               <td>Les validations analyste technique, RSSI, achats/juridique et decision comite final sont integrees directement dans l'arbitrage assistant.</td>
             </tr>
           </tbody>
         </table>
         <div class="note warn">
-          <strong>&#9888; Attention :</strong> en mode strict, l'outil peut retourner "Aucune option acceptable" si les seuils et controles conformite ne sont pas atteints.
+          <strong>&#9888; Attention:</strong> en mode strict, l'outil peut retourner "Aucune option acceptable" si les seuils et controles conformite ne sont pas atteints.
         </div>
         <div class="toplink"><a href="#top">Retour au sommaire</a></div>
       </section>
@@ -617,16 +531,6 @@
               <td>Etat des controles sectoriels</td>
               <td>Traiter les alertes avant contractualisation</td>
             </tr>
-            <tr>
-              <td>Radar de comparaison <span class="badge-new">V2.0</span></td>
-              <td>Graphique SVG 6 axes comparant deux scenarios</td>
-              <td>Visualiser les forces/faiblesses de chaque option</td>
-            </tr>
-            <tr>
-              <td>Widget Solution Leader <span class="badge-new">V2.0</span></td>
-              <td>Recommandation live calculee en temps reel</td>
-              <td>Consulter en bas a gauche pendant la saisie</td>
-            </tr>
           </tbody>
         </table>
         <div class="toplink"><a href="#top">Retour au sommaire</a></div>
@@ -651,117 +555,34 @@
         <h3>Phase 7 - Annexe RVTools et recette integree</h3>
         <p>Consolider le snapshot RVTools (metriques + journal d'application), alimenter les exports PDF/Excel et executer une recette fonctionnelle non destructive de la restitution.</p>
         <h3>Phase 8 - Comparaison avant / apres migration</h3>
-        <p>Comparer la baseline VMware issue de RVTools avec la cible recommandee : deltas capacitaires, projection TCO, trajectoire de migration et actions prioritaires.</p>
+        <p>Comparer la baseline VMware issue de RVTools avec la cible recommandee: deltas capacitaires, projection TCO, trajectoire de migration et actions prioritaires.</p>
         <h3>Phase 9 - Retroplanning Gantt et profils equipe</h3>
-        <p>Generer un planning multi-scenarios (Rapide, Reference, Securise) et calibrer les profils Technicien, Ingenieur, Chef de projet et Autres (ex : RSSI, expert securite). La couverture de profils et le goulot principal impactent automatiquement le delai cible et le risque planning. En V2.0, les barres Gantt sont <strong>deplacables par glisser-deposer</strong>.</p>
+        <p>Generer un planning multi-scenarios (Rapide, Reference, Securise) et calibrer les profils Technicien, Ingenieur, Chef de projet et Autres (ex: RSSI, expert securite). La couverture de profils et le goulot principal impactent automatiquement le delai cible et le risque planning.</p>
         <div class="toplink"><a href="#top">Retour au sommaire</a></div>
       </section>
 
       <section id="ch6">
         <h2>6. &#129504; Exemples d'utilisation</h2>
         <h3>Exemple A - Collectivite, budget contraint</h3>
-        <p><strong>Contexte :</strong> 180 VM, souverainete forte, capacite Linux moyenne.</p>
-        <p><strong>Resultat attendu :</strong> alternatives orientees maitrise des couts avec risque modere. Le widget Solution Leader affiche la solution en temps reel pendant la saisie.</p>
+        <p><strong>Contexte:</strong> 180 VM, souverainete forte, capacite Linux moyenne.</p>
+        <p><strong>Resultat attendu:</strong> alternatives orientees maitrise des couts avec risque modere.</p>
 
         <h3>Exemple B - Ministere, securite maximale</h3>
-        <p><strong>Contexte :</strong> exigences de securite elevees, auditabilite stricte.</p>
-        <p><strong>Resultat attendu :</strong> options compatibles souverainete forte et controles renforces. Utiliser le radar de comparaison pour visualiser les 6 axes.</p>
+        <p><strong>Contexte:</strong> exigences de securite elevees, auditabilite stricte.</p>
+        <p><strong>Resultat attendu:</strong> options compatibles souverainete forte et controles renforces.</p>
 
         <h3>Exemple C - Sante, donnees sensibles</h3>
-        <p><strong>Contexte :</strong> criticite vitale, obligations d'hebergement et de tracabilite.</p>
-        <p><strong>Resultat attendu :</strong> shortlist prudente, validation conformite prioritaire.</p>
+        <p><strong>Contexte:</strong> criticite vitale, obligations d'hebergement et de tracabilite.</p>
+        <p><strong>Resultat attendu:</strong> shortlist prudente, validation conformite prioritaire.</p>
 
         <h3>Exemple D - Sortie acceleree (12 mois)</h3>
-        <p><strong>Contexte :</strong> contrainte calendrier forte, tolerance changement faible.</p>
-        <p><strong>Resultat attendu :</strong> priorite a la vitesse de sortie. Generer le planning IA, puis ajuster les barres Gantt par glisser-deposer.</p>
-
-        <h3>Exemple E - Presentation en comite <span class="badge-new">V2.0</span></h3>
-        <p><strong>Contexte :</strong> presentation devant un comite de direction, ecran partage.</p>
-        <p><strong>Utilisation :</strong> activer le <strong>Mode Presentation</strong> (bouton &#127919; Presentation) pour masquer le formulaire et afficher uniquement les resultats et visualisations.</p>
-        <div class="toplink"><a href="#top">Retour au sommaire</a></div>
-      </section>
-
-      <!-- ======================== PHASE 4 — SECTION NOUVELLE ======================== -->
-      <section id="ch_phase4" class="new-section">
-        <h2>7. &#127775; Phase 4 — Hub IA &amp; Raffinement UX <span class="badge-new">V2.0</span></h2>
-        <p>La version 2.0 introduit dix nouvelles fonctionnalites regroupees en quatre themes : consolidation de l'interface IA, visualisation avancee, intelligence explicable et accessibilite.</p>
-
-        <h3>&#9881; AI Hub — Panneau lateral centralise</h3>
-        <p>Le bouton <strong>&#9881; AI Hub</strong> (barre d'actions principale) ouvre un panneau lateral coulissant depuis la droite. Il regroupe tous les outils IA en un seul endroit :</p>
-        <div class="hub-grid">
-          <div class="hub-item"><strong>&#10024; Copilot IA</strong><span>Piloter le formulaire en langage naturel</span></div>
-          <div class="hub-item"><strong>&#129302; Chat Expert VMware</strong><span>Ouvrir le chat Mistral AI</span></div>
-          <div class="hub-item"><strong>&#127963;&#65039; Comite Virtuel</strong><span>3 experts IA en parallele</span></div>
-          <div class="hub-item"><strong>&#9878;&#65039; Comparateur</strong><span>Comparer les scenarios</span></div>
-          <div class="hub-item"><strong>&#128203; Rapport IA</strong><span>Generer le rapport decisionnel</span></div>
-          <div class="hub-item"><strong>&#128197; Planning IA</strong><span>Planificateur Gantt intelligent</span></div>
-          <div class="hub-item"><strong>&#127919; Mode Presentation</strong><span>Focus mode pour comite</span></div>
-        </div>
-        <div class="note purple">
-          <strong>&#128161; Animation Glow :</strong> le bouton AI Hub s'anime d'un eclat violet a chaque modification du formulaire pour signaler que l'IA peut etre re-consultee.
-        </div>
-
-        <h3>&#9000; Palette de commandes — Ctrl+K</h3>
-        <p>Le raccourci <span class="kdb">Ctrl</span>+<span class="kdb">K</span> ouvre une palette de commandes plein ecran. Taper quelques lettres filtre instantanement les actions disponibles. Appuyer sur <span class="kdb">Entree</span> ou cliquer pour executer. <span class="kdb">Echap</span> ferme la palette.</p>
-        <table>
-          <thead><tr><th>Lettre rapide</th><th>Action</th></tr></thead>
-          <tbody>
-            <tr><td><span class="kdb">C</span></td><td>Copilot IA</td></tr>
-            <tr><td><span class="kdb">A</span></td><td>Comite Virtuel multi-agents</td></tr>
-            <tr><td><span class="kdb">S</span></td><td>Comparateur de scenarios</td></tr>
-            <tr><td><span class="kdb">R</span></td><td>Rapport decisionnel</td></tr>
-            <tr><td><span class="kdb">P</span></td><td>Planning Migration Gantt</td></tr>
-            <tr><td><span class="kdb">F</span></td><td>Mode Presentation</td></tr>
-          </tbody>
-        </table>
-
-        <h3>&#128202; Radar de comparaison — Graphique SVG</h3>
-        <p>Dans le comparateur de scenarios, un graphique radar a 6 axes est genere automatiquement apres chaque comparaison :</p>
-        <ul>
-          <li><strong>Cout</strong> — niveau de maitrise budgetaire</li>
-          <li><strong>Securite</strong> — niveau de robustesse securitaire</li>
-          <li><strong>Souverainete</strong> — conformite HDS/SecNumCloud</li>
-          <li><strong>Maturite</strong> — maturite de la solution sur le marche</li>
-          <li><strong>Migration</strong> — facilite de migration depuis VMware</li>
-          <li><strong>Ecosysteme</strong> — richesse des partenaires et integrateurs</li>
-        </ul>
-        <p>Les deux scenarios selectionnes sont superposes sur le radar avec des couleurs distinctes pour une comparaison visuelle immediate.</p>
-
-        <h3>&#128205; Widget Solution Leader</h3>
-        <p>Un widget fixe en bas a gauche de l'ecran affiche en permanence la solution la plus adaptee au profil saisi, recalculee a chaque modification du formulaire :</p>
-        <ul>
-          <li><strong>Titre vert :</strong> solution recommandee a l'instant T</li>
-          <li><strong>Barre de pertinence :</strong> score de confiance (plus le formulaire est rempli, plus la barre est haute)</li>
-          <li><strong>Top 3 :</strong> les trois alternatives les mieux classees avec leurs scores</li>
-          <li><strong>Bouton — :</strong> reduire/agrandir le widget</li>
-        </ul>
-        <div class="note">
-          <strong>&#128161; Conseil :</strong> une barre de pertinence inferieure a 60% indique que le formulaire est insuffisamment rempli pour une recommandation fiable. Completer les sections Souverainete, Budget et Criticite en priorite.
-        </div>
-
-        <h3>&#128383;&#65039; Gantt Drag-and-Drop</h3>
-        <p>Dans le Planificateur de Migration IA, les barres de taches du Gantt sont deplacables par glisser-deposer. Maintenir le clic sur une barre, la glisser horizontalement, puis relacher pour repositionner la tache. Le planning se recalcule automatiquement.</p>
-
-        <h3>&#128161; Bouton "Pourquoi ces choix ?"</h3>
-        <p>Apres chaque application de configuration par le Copilot IA, un bouton <strong>&#128161; Pourquoi ces choix ?</strong> apparait dans le resultat. Il envoie automatiquement une demande d'explication au chat Expert VMware, qui repond en detaillant les raisons de chaque modification.</p>
-
-        <h3>&#8634; Annuler les changements IA (Undo)</h3>
-        <p>Apres chaque application de configuration par le Copilot IA, un bandeau apparait en bas de l'ecran : <em>"X champs modifies — Annuler"</em>. Cliquer sur <strong>Annuler</strong> restaure l'etat exact des champs avant l'application. Le bandeau disparait automatiquement apres 8 secondes.</p>
-
-        <h3>&#128218; Citations RAG cliquables</h3>
-        <p>Lorsque la base de connaissance RAG est activee, chaque reponse du chat Expert VMware affiche une section <em>"X source(s) consultee(s)"</em> depliable. Elle liste les documents de reference utilises par l'IA pour construire sa reponse.</p>
-
-        <h3>&#127919; Mode Presentation (Focus Mode)</h3>
-        <p>Le bouton <strong>&#127919; Presentation</strong> masque le formulaire de saisie pour ne conserver que les resultats, visualisations et outils IA. Un bandeau fixe en haut de page permet de quitter ce mode. Ideal pour la presentation en comite de direction ou lors d'un partage d'ecran.</p>
-
-        <h3>&#8962; Bouton Accueil</h3>
-        <p>Le bouton <strong>&#8962; Accueil</strong> (premiere position dans la barre d'actions) permet de revenir a la page d'accueil a tout moment sans perdre les donnees saisies.</p>
-
+        <p><strong>Contexte:</strong> contrainte calendrier forte, tolerance changement faible.</p>
+        <p><strong>Resultat attendu:</strong> priorite a la vitesse de sortie et a la faisabilite operationnelle.</p>
         <div class="toplink"><a href="#top">Retour au sommaire</a></div>
       </section>
 
       <section id="ch7">
-        <h2>8. &#128202; Tableaux de reference</h2>
+        <h2>7. &#128202; Tableaux de reference</h2>
         <h3>Interpretation des niveaux de confiance</h3>
         <table>
           <thead>
@@ -822,41 +643,21 @@
             </tr>
           </tbody>
         </table>
-
-        <h3>Scenarios disponibles dans le comparateur <span class="badge-new">V2.0</span></h3>
-        <table>
-          <thead>
-            <tr>
-              <th>Scenario</th>
-              <th>Profil type</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr><td>XCP-ng + XOSTOR</td><td>Maitrise totale, on-premise, budget optimise</td></tr>
-            <tr><td>Nutanix AHV</td><td>HCI enterprise, equipes operationnelles</td></tr>
-            <tr><td>Cloud SecNumCloud</td><td>Exigences souverainete maximale</td></tr>
-            <tr><td>Hybride Nutanix + Cloud</td><td>Flexibilite, scale-out progressif</td></tr>
-            <tr><td>OpenStack prive</td><td>Cloud interne, competences DevOps</td></tr>
-            <tr><td>HPE VM Essentials</td><td>Ecosysteme HPE existant, migration facile</td></tr>
-            <tr><td>Proxmox VE Enterprise</td><td>SMB, budget tres contraint</td></tr>
-            <tr><td>VMware Tanzu / vSphere+</td><td>Continuance VMware, modernisation apps</td></tr>
-          </tbody>
-        </table>
         <div class="toplink"><a href="#top">Retour au sommaire</a></div>
       </section>
 
       <section id="ch8">
-        <h2>9. &#10067; FAQ</h2>
+        <h2>8. &#10067; FAQ</h2>
         <h3>Pourquoi "Aucune option acceptable" ?</h3>
         <p>Les seuils stricts ou les controles conformite eliminent toutes les options. Assouplir temporairement un seuil pour tester des scenarii.</p>
         <h3>Que faire si l'ecart score est faible ?</h3>
-        <p>Prioriser les contraintes non negotiables (conformite, reversibilite, support), puis utiliser un pilote cible pour departager. Comparer les deux options avec le radar SVG (comparateur de scenarios).</p>
+        <p>Prioriser les contraintes non negotiables (conformite, reversibilite, support), puis utiliser un pilote cible pour departager.</p>
         <h3>Comment exploiter la phase 5 ?</h3>
         <p>Ajouter chaque cas pilote, suivre les KPI d'acceptation et alimenter le backlog d'amelioration continue.</p>
         <h3>La phase 6 remplace-t-elle la phase 5 ?</h3>
-        <p>Non. La phase 5 mesure localement l'adoption ; la phase 6 consolide a l'echelle multi-entites.</p>
+        <p>Non. La phase 5 mesure localement l'adoption; la phase 6 consolide a l'echelle multi-entites.</p>
         <h3>A quoi sert la phase 7 RVTools ?</h3>
-        <p>Elle transforme l'import RVTools en annexe exploitable en comite : resume, metriques techniques, journal d'application et recette de verification integree.</p>
+        <p>Elle transforme l'import RVTools en annexe exploitable en comite: resume, metriques techniques, journal d'application et recette de verification integree.</p>
         <h3>Que couvre la phase 8 avant / apres ?</h3>
         <p>Elle projette la situation cible post-migration (hotes, snapshots, dette technique, TCO, actions) a partir de la recommandation et des donnees RVTools.</p>
         <h3>Comment verifier la fiabilite globale ?</h3>
@@ -866,23 +667,15 @@
         <h3>Que fait "Exporter dossier comite" ?</h3>
         <p>Le bouton enchaine automatiquement la generation d'un PDF comite et d'un Excel annexe dans le template sectoriel selectionne.</p>
         <h3>Comment utiliser les profils dans le Gantt ?</h3>
-        <p>Renseigner effectif, disponibilite et seniorite pour Technicien, Ingenieur et Chef de projet. Ajouter les profils "Autres" necessaires (RSSI, expert reseau, etc.). Le moteur ajuste ensuite les durees, le risque et met en avant le goulot principal. En V2.0, les barres sont deplacables par glisser-deposer.</p>
+        <p>Renseigner effectif, disponibilite et seniorite pour Technicien, Ingenieur et Chef de projet. Ajouter les profils "Autres" necessaires (RSSI, expert reseau, etc.). Le moteur ajuste ensuite les durees, le risque et met en avant le goulot principal.</p>
         <h3>Pourquoi la completude assistant n'est pas a 100% ?</h3>
         <p>La completude se base sur les etapes visitees du parcours assistant. Si une etape n'a pas ete ouverte, elle n'entre pas dans le calcul affiche, meme si certains champs sont deja pre-remplis.</p>
-        <h3>Le Copilot IA a modifie des champs — comment annuler ? <span class="badge-new">V2.0</span></h3>
-        <p>Un bandeau <em>"X champs modifies — Annuler"</em> apparait en bas de l'ecran pendant 8 secondes apres chaque application. Cliquer sur <strong>Annuler</strong> pour restaurer l'etat precedent.</p>
-        <h3>A quoi sert le widget Solution Leader ? <span class="badge-new">V2.0</span></h3>
-        <p>Il affiche en temps reel la solution la mieux adaptee a votre profil, avec un score de pertinence et les 3 alternatives les plus proches. Il se met a jour a chaque modification du formulaire.</p>
-        <h3>Comment configurer la cle API Mistral ?</h3>
-        <p>Cliquer sur le bouton <strong>&#9881;&#65039; IA</strong> dans la barre d'actions. Dans le panneau qui s'ouvre, saisir la cle API Mistral et cliquer sur "Tester la connexion". La cle est stockee localement dans le navigateur.</p>
-        <h3>Comment fonctionne la base RAG ? <span class="badge-new">V2.0</span></h3>
-        <p>La base RAG (Retrieval-Augmented Generation) enrichit les reponses du chat avec des documents de reference (textes reglementaires, fiches solutions). Lorsqu'elle est activee, les sources consultees sont affichees sous chaque reponse sous forme de section depliable.</p>
         <div class="toplink"><a href="#top">Retour au sommaire</a></div>
       </section>
 
       <section id="ch9">
-        <h2>10. &#9000; Raccourcis</h2>
-        <p>Raccourcis recommandes pour usage quotidien :</p>
+        <h2>9. &#9000; Raccourcis</h2>
+        <p>Raccourcis recommandes pour usage quotidien:</p>
         <table>
           <thead>
             <tr>
@@ -893,7 +686,7 @@
           <tbody>
             <tr>
               <td>Lancer l'analyse</td>
-              <td><span class="kdb">Ctrl</span> + <span class="kdb">Entree</span></td>
+              <td><span class="kdb">Ctrl</span> + <span class="kdb">Entrer</span></td>
             </tr>
             <tr>
               <td>Ouvrir l'assistant guide</td>
@@ -916,39 +709,27 @@
               <td><span class="kdb">Ctrl</span> + <span class="kdb">D</span></td>
             </tr>
             <tr>
-              <td>Ouvrir le Hub IA / Palette de commandes <span class="badge-new">V2.0</span></td>
-              <td><span class="kdb">Ctrl</span> + <span class="kdb">K</span></td>
-            </tr>
-            <tr>
               <td>Basculer mode lecture comite</td>
               <td>Bouton "Mode lecture comite"</td>
             </tr>
             <tr>
-              <td>Mode Presentation (focus) <span class="badge-new">V2.0</span></td>
-              <td>Bouton &#127919; Presentation ou Ctrl+K → F</td>
-            </tr>
-            <tr>
-              <td>Fermer la fenetre / palette</td>
+              <td>Fermer la fenetre assistant</td>
               <td><span class="kdb">Echap</span></td>
             </tr>
             <tr>
               <td>Executer recette comite C + D</td>
               <td>Bouton "Executer la recette C + D"</td>
             </tr>
-            <tr>
-              <td>Retour a l'accueil <span class="badge-new">V2.0</span></td>
-              <td>Bouton &#8962; Accueil</td>
-            </tr>
           </tbody>
         </table>
         <div class="note">
-          <strong>&#128161; Astuce :</strong> vous pouvez utiliser la recherche du navigateur (<span class="kdb">Ctrl</span> + <span class="kdb">F</span>) pour trouver rapidement une section de cette documentation.
+          <strong>&#128161; Astuce:</strong> vous pouvez utiliser la recherche du navigateur (<span class="kdb">Ctrl</span> + <span class="kdb">F</span>) pour trouver rapidement une section de cette documentation.
         </div>
         <div class="toplink"><a href="#top">Retour au sommaire</a></div>
       </section>
 
       <section id="ch10">
-        <h2>11. &#128214; Glossaire</h2>
+        <h2>10. &#128214; Glossaire</h2>
         <table>
           <thead>
             <tr>
@@ -991,35 +772,7 @@
             </tr>
             <tr>
               <td>Goulot principal</td>
-              <td>Profil le plus contraint (ex : Ingenieur, Chef de projet) qui limite le rythme global du retroplanning.</td>
-            </tr>
-            <tr>
-              <td>AI Hub <span class="badge-new">V2.0</span></td>
-              <td>Panneau lateral regroupant tous les outils IA de l'application (Copilot, Chat, Comite, Comparateur, Rapport, Planning, Focus).</td>
-            </tr>
-            <tr>
-              <td>Palette Ctrl+K <span class="badge-new">V2.0</span></td>
-              <td>Overlay de commandes rapides accessible par raccourci clavier. Permet de lancer n'importe quel outil IA en 2 frappes.</td>
-            </tr>
-            <tr>
-              <td>Solution Leader <span class="badge-new">V2.0</span></td>
-              <td>Widget en bas a gauche affichant la solution la mieux adaptee au profil courant, recalculee a chaque modification.</td>
-            </tr>
-            <tr>
-              <td>Radar SVG <span class="badge-new">V2.0</span></td>
-              <td>Graphique araignee a 6 axes generant une comparaison visuelle de deux scenarios dans le comparateur.</td>
-            </tr>
-            <tr>
-              <td>Undo IA <span class="badge-new">V2.0</span></td>
-              <td>Fonction de restauration des valeurs avant application par le Copilot IA. Disponible via le bandeau 8 secondes apres chaque application.</td>
-            </tr>
-            <tr>
-              <td>RAG <span class="badge-new">V2.0</span></td>
-              <td>Retrieval-Augmented Generation : enrichissement des reponses IA avec des documents de reference. Les sources citees sont affichees sous chaque reponse.</td>
-            </tr>
-            <tr>
-              <td>Mode Presentation <span class="badge-new">V2.0</span></td>
-              <td>Focus mode masquant le formulaire de saisie pour afficher uniquement les resultats. Ideal pour les comites de direction.</td>
+              <td>Profil le plus contraint (ex: Ingenieur, Chef de projet) qui limite le rythme global du retroplanning.</td>
             </tr>
           </tbody>
         </table>
@@ -1027,8 +780,8 @@
       </section>
 
       <section id="ch11">
-        <h2>12. &#9200; Version et horodatage automatique</h2>
-        <p>La version affichee est <strong>V2.0</strong>. Un horodatage automatique est enregistre a chaque evolution de version detectee.</p>
+        <h2>11. &#9200; Version et horodatage automatique</h2>
+        <p>La version affichee est <strong>V1.6</strong>. Un horodatage automatique est enregistre a chaque evolution de version detectee.</p>
         <table>
           <thead>
             <tr>
@@ -1039,70 +792,21 @@
           </thead>
           <tbody id="historyBody"></tbody>
         </table>
-
-        <h3>Historique des evolutions principales</h3>
-        <table>
-          <thead>
-            <tr>
-              <th>Version</th>
-              <th>Date</th>
-              <th>Evolutions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td><strong>V2.0</strong></td>
-              <td>17/03/2026</td>
-              <td>Phase 4 — Hub IA (sidebar + Ctrl+K), widget Solution Leader live, radar SVG comparateur, Gantt drag-and-drop, Copilot Undo, citations RAG, bouton Pourquoi, Mode Presentation, bouton Accueil. Correction CSS variables (modals opaques), correction regex RAG.</td>
-            </tr>
-            <tr>
-              <td>V1.6</td>
-              <td>14/03/2026</td>
-              <td>Schema visuel assistant guide, parcours fil d'ariane 6 etapes, scenarios pre-remplis collectivite/ministere/sante/social.</td>
-            </tr>
-            <tr>
-              <td>V1.5</td>
-              <td>-</td>
-              <td>Annexe RVTools, comparaison avant/apres migration, recette integree phase 7.</td>
-            </tr>
-            <tr>
-              <td>V1.4</td>
-              <td>-</td>
-              <td>Retroplanning Gantt, profils equipe (Technicien, Ingenieur, Chef de projet, Autres), couverture profils, goulot principal.</td>
-            </tr>
-            <tr>
-              <td>V1.3</td>
-              <td>-</td>
-              <td>Rapport decisionnel IA (PDF/Word), Comite Virtuel multi-agents, Comparateur de scenarios.</td>
-            </tr>
-            <tr>
-              <td>V1.2</td>
-              <td>-</td>
-              <td>Copilot IA interactif, coaching contextuel, pilotage en langage naturel.</td>
-            </tr>
-            <tr>
-              <td>V1.0</td>
-              <td>-</td>
-              <td>Moteur de scoring multicritere, matrice de conformite, exports PDF/Excel, chat Expert VMware (Mistral).</td>
-            </tr>
-          </tbody>
-        </table>
-
         <div class="note">
-          <strong>&#9989; Regle :</strong> si la version change (ex : V1.6 -&gt; V2.0), une nouvelle entree horodatee est ajoutee automatiquement au journal.
+          <strong>&#9989; Regle:</strong> si la version change (ex: V1.5 -&gt; V1.6), une nouvelle entree horodatee est ajoutee automatiquement au journal.
         </div>
         <div class="toplink"><a href="#top">Retour au sommaire</a></div>
       </section>
 
       <section id="ch12">
-        <h2>13. &#129309; Support et gouvernance documentaire</h2>
+        <h2>12. &#129309; Support et gouvernance documentaire</h2>
         <ul>
-          <li>Owner metier : responsable architecture.</li>
-          <li>Validation : RSSI + Achats + Juridique.</li>
-          <li>Rythme de revue recommande : mensuel sur regles, trimestriel sur portefeuille multi-entites et readiness comite.</li>
-          <li>Controle qualite : executer les cas tests phase 1, tests phase B, recette C + D, recette phase 6 et recette phase 7 apres toute modification.</li>
+          <li>Owner metier: responsable architecture.</li>
+          <li>Validation: RSSI + Achats + Juridique.</li>
+          <li>Rythme de revue recommande: mensuel sur regles, trimestriel sur portefeuille multi-entites et readiness comite.</li>
+          <li>Controle qualite: executer les cas tests phase 1, tests phase B, recette C + D, recette phase 6 et recette phase 7 apres toute modification.</li>
         </ul>
-        <div class="footer">Documentation utilisateur V2.0 — Configurateur de sortie VMware — 17/03/2026</div>
+        <div class="footer">Documentation utilisateur - Configurateur de sortie VMware</div>
         <div class="toplink"><a href="#top">Retour au sommaire</a></div>
       </section>
     </main>
@@ -1110,25 +814,30 @@
 
   <script>
     (function() {
-      const DOC_VERSION  = "V2.0";
-      const DOC_BUILD_TS = "2026-03-17T10:00:00.000Z";
-      const DOC_EVENT    = "Phase 4 — Hub IA, Solution Leader, Radar SVG, Gantt drag-and-drop, Undo Copilot, RAG citations, Mode Presentation, bouton Accueil";
-      const HISTORY_KEY  = "vmwareUserDocVersionHistory";
-      const nowFr        = new Date(DOC_BUILD_TS).toLocaleString("fr-FR");
+      const DOC_VERSION = "V1.6";
+      const DOC_BUILD_TS = "2026-03-14T16:00:00.000Z";
+      const DOC_EVENT = "Ajout schema visuel assistant guide";
+      const HISTORY_KEY = "vmwareUserDocVersionHistory";
+      const nowIso = DOC_BUILD_TS;
+      const nowFr = new Date(nowIso).toLocaleString("fr-FR");
 
-      document.getElementById("docVersion").textContent  = DOC_VERSION;
+      document.getElementById("docVersion").textContent = DOC_VERSION;
       document.getElementById("docTimestamp").textContent = nowFr;
 
-      const raw     = localStorage.getItem(HISTORY_KEY);
+      const raw = localStorage.getItem(HISTORY_KEY);
       const history = raw ? JSON.parse(raw) : [];
       if (!history.length || history[0].version !== DOC_VERSION) {
-        history.unshift({ version: DOC_VERSION, timestamp: DOC_BUILD_TS, event: DOC_EVENT });
+        history.unshift({
+          version: DOC_VERSION,
+          timestamp: nowIso,
+          event: DOC_EVENT
+        });
         localStorage.setItem(HISTORY_KEY, JSON.stringify(history.slice(0, 30)));
       }
 
       const body = document.getElementById("historyBody");
       const list = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
-      body.innerHTML = list.map(function(item) {
+      body.innerHTML = list.map((item) => {
         return "<tr>" +
           "<td>" + item.version + "</td>" +
           "<td>" + new Date(item.timestamp).toLocaleString("fr-FR") + "</td>" +
