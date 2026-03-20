@@ -16294,6 +16294,10 @@
           body.style.display = collapsed ? "" : "none";
           btn.innerHTML = collapsed ? "&#9660; Réduire" : "&#9654; Développer";
         });
+
+        // Réduit par défaut
+        body.style.display = "none";
+        btn.innerHTML = "&#9654; Développer";
       });
 
       // Step nav : clic → scroll vers la section + highlight actif
