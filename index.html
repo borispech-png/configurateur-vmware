@@ -7865,15 +7865,38 @@
     }
 
     function setFormStep(step, doScroll) {
+      var prevStep = formCurrentStep;
       formCurrentStep = clamp(step, 1, 6);
       document.getElementById("stepNavigatorLabel").textContent = "Etape active: " + formCurrentStep + ". " + (document.querySelectorAll("#stepsBar .step")[formCurrentStep - 1].textContent.split(". ")[1] || "");
       document.getElementById("stepPrev").disabled = formCurrentStep === 1;
       document.getElementById("stepNext").disabled = formCurrentStep === 6;
-      // Show only the active step block inside the encart
-      document.querySelectorAll(".form-step-block").forEach(function(block) {
-        block.classList.toggle("active", Number(block.getAttribute("data-form-step")) === formCurrentStep);
-      });
-      // Scroll encart into view on mobile, or scroll top of step-nav
+
+      var fromEl = document.querySelector('.form-step-block[data-form-step="' + prevStep + '"]');
+      var toEl   = document.querySelector('.form-step-block[data-form-step="' + formCurrentStep + '"]');
+
+      if (fromEl && toEl && prevStep !== formCurrentStep) {
+        var dir = formCurrentStep > prevStep ? 1 : -1;
+        var enterCls = dir > 0 ? 'step-slide-enter-right' : 'step-slide-enter-left';
+        var exitCls  = dir > 0 ? 'step-slide-exit-left'  : 'step-slide-exit-right';
+        ['step-slide-enter-right','step-slide-enter-left','step-slide-exit-left','step-slide-exit-right'].forEach(function(c) {
+          fromEl.classList.remove(c); toEl.classList.remove(c);
+        });
+        toEl.style.display = 'block';
+        void toEl.offsetWidth;
+        fromEl.classList.add(exitCls);
+        toEl.classList.add(enterCls);
+        setTimeout(function() {
+          fromEl.classList.remove('active', exitCls);
+          fromEl.style.display = '';
+          toEl.classList.remove(enterCls);
+          toEl.classList.add('active');
+        }, 240);
+      } else {
+        document.querySelectorAll(".form-step-block").forEach(function(block) {
+          block.classList.toggle("active", Number(block.getAttribute("data-form-step")) === formCurrentStep);
+        });
+      }
+
       if (doScroll) {
         const nav = document.getElementById("formStepContent");
         if (nav) nav.scrollIntoView({ behavior: "smooth", block: "nearest" });
@@ -7957,7 +7980,15 @@
       }
 
       const ratio = Math.round((reached / maxStep) * 100);
-      document.getElementById("progressBar").style.width = ratio + "%";
+      var _pb = document.getElementById("progressBar");
+      var _prevRatio = parseInt(_pb.style.width) || 0;
+      _pb.style.width = ratio + "%";
+      if (ratio > _prevRatio) {
+        _pb.classList.remove('progress-shimmer');
+        void _pb.offsetWidth;
+        _pb.classList.add('progress-shimmer');
+        _pb.addEventListener('animationend', function() { _pb.classList.remove('progress-shimmer'); }, { once: true });
+      }
 
       // Step label
       var stepLbl = document.getElementById('progressStepLabel');
@@ -11069,6 +11100,14 @@
         return;
       }
 
+      // Spinner
+      var _runBtn = document.getElementById("runAnalysis");
+      var _runOrigHtml = _runBtn.innerHTML;
+      _runBtn.disabled = true;
+      _runBtn.innerHTML = '<span class="btn-spinner"></span> Calcul en cours\u2026';
+
+      requestAnimationFrame(function() { setTimeout(function() {
+
       const result = getRecommendationFromAnswers(answers);
       if (validation.warnings.length > 0) {
         result.decisionMessage += " Vigilances: " + validation.warnings.join(" | ");
@@ -11092,6 +11131,12 @@
         document.getElementById("p5FinalChoice").value = result.top[0].name;
       }
       updateProgress();
+
+      // Reset spinner
+      _runBtn.disabled = false;
+      _runBtn.innerHTML = _runOrigHtml;
+
+      }, 16); }); // end setTimeout/rAF spinner
     });
 
     document.getElementById("resetForm").addEventListener("click", resetForm);
@@ -11099,6 +11144,21 @@
     Array.from(document.querySelectorAll("input, select")).forEach((el) => {
       el.addEventListener("change", updateProgress);
       el.addEventListener("input", updateProgress);
+      // Micro-glow feedback
+      if (el.getAttribute('data-step')) {
+        el.addEventListener('change', function() {
+          var filled = el.type === 'checkbox' ? el.checked : String(el.value || '').trim() !== '';
+          el.classList.toggle('field-ok', filled);
+          el.classList.remove('field-err');
+        });
+        el.addEventListener('blur', function() {
+          var filled = el.type === 'checkbox' ? el.checked : String(el.value || '').trim() !== '';
+          if (!filled) el.classList.add('field-err');
+        });
+        el.addEventListener('focus', function() {
+          el.classList.remove('field-err');
+        });
+      }
     });
 
     ["compliancePack", "hostingConstraint", "continuityLevel", "p4DataLocalization", "p4AuditTrail", "p4PcaPrai", "p4ContractExit", "p4SupplierRisk", "orgType"].forEach((id) => {

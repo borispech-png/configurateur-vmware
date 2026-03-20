@@ -259,6 +259,33 @@
       display: block;
     }
 
+    /* ── Phase 1 animations ──────────────────────────────────────── */
+    /* Step slide transitions */
+    @keyframes _stepInRight  { from { opacity:0; transform:translateX(28px);  } to { opacity:1; transform:translateX(0); } }
+    @keyframes _stepInLeft   { from { opacity:0; transform:translateX(-28px); } to { opacity:1; transform:translateX(0); } }
+    @keyframes _stepOutLeft  { from { opacity:1; transform:translateX(0); } to { opacity:0; transform:translateX(-28px); } }
+    @keyframes _stepOutRight { from { opacity:1; transform:translateX(0); } to { opacity:0; transform:translateX(28px);  } }
+    .step-slide-enter-right { animation: _stepInRight  .24s ease-out both; }
+    .step-slide-enter-left  { animation: _stepInLeft   .24s ease-out both; }
+    .step-slide-exit-left   { animation: _stepOutLeft  .22s ease-in  both; }
+    .step-slide-exit-right  { animation: _stepOutRight .22s ease-in  both; }
+
+    /* Progress shimmer */
+    @keyframes _shimmer { 0% { background-position:-200% 0; } 100% { background-position:200% 0; } }
+    .progress.progress-shimmer {
+      background-image: linear-gradient(90deg, transparent 0%, rgba(255,255,255,.45) 50%, transparent 100%);
+      background-size: 200% 100%;
+      animation: _shimmer .7s ease-in-out;
+    }
+
+    /* Field glow on fill */
+    .field-ok  { box-shadow:0 0 0 3px rgba(16,185,129,.28)!important; border-color:#10b981!important; transition:box-shadow .2s, border-color .2s; }
+    .field-err { box-shadow:0 0 0 3px rgba(239,68,68,.2)!important;  border-color:#ef4444!important; transition:box-shadow .2s, border-color .2s; }
+
+    /* Analyze button spinner */
+    @keyframes _spin { to { transform:rotate(360deg); } }
+    .btn-spinner { display:inline-block; width:13px; height:13px; border:2px solid rgba(255,255,255,.35); border-top-color:#fff; border-radius:50%; animation:_spin .65s linear infinite; vertical-align:middle; margin-right:7px; }
+
     .step-nav-footer {
       border-top: 1px solid #d3e2dd;
       padding-top: 0.65rem;
