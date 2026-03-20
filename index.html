@@ -244,9 +244,9 @@
           <strong>Mode Assistant Guide actif <span class="guide-score-badge" id="guideScoreBadge"></span></strong>
           <div class="guide-banner-tags">
             <span class="guide-banner-tag">Phase 1</span>
-            <span class="guide-banner-tag">Phase B</span>
-            <span class="guide-banner-tag">Phase 5</span>
-            <span class="guide-banner-tag">Phase 6</span>
+            <span class="guide-banner-tag">Phase 2</span>
+            <span class="guide-banner-tag">Phase 3</span>
+            <span class="guide-banner-tag">Phase 4</span>
           </div>
         </div>
       </div>
@@ -1923,17 +1923,17 @@
       <span class="step-arrow">→</span>
       <div class="phase-step" data-panel="phaseBPanel">
         <span class="step-badge">②</span>
-        <span class="step-label">Phase B<br><small>Fiabilité décisions</small></span>
+        <span class="step-label">Phase 2<br><small>Fiabilité décisions</small></span>
       </div>
       <span class="step-arrow">→</span>
       <div class="phase-step" data-panel="phase5Panel">
         <span class="step-badge">③</span>
-        <span class="step-label">Phase 5<br><small>Pilotage terrain</small></span>
+        <span class="step-label">Phase 3<br><small>Pilotage terrain</small></span>
       </div>
       <span class="step-arrow">→</span>
       <div class="phase-step" data-panel="phase6Panel">
         <span class="step-badge">④</span>
-        <span class="step-label">Phase 6<br><small>Passage à l'échelle</small></span>
+        <span class="step-label">Phase 4<br><small>Passage à l'échelle</small></span>
       </div>
     </div>
 
@@ -2024,7 +2024,7 @@
 
     <section class="panel" id="phaseBPanel">
       <div class="panel-header-row">
-        <h2><span class="phase-num-badge">②</span> Phase B — Fiabilité des décisions</h2>
+        <h2><span class="phase-num-badge">②</span> Phase 2 — Fiabilité des décisions</h2>
         <button class="section-toggle-btn" id="collapsePhaseBBtn" type="button" title="Réduire / développer la section">▼ Réduire</button>
       </div>
       <div class="panel-collapsible" id="phaseBBody">
@@ -2104,7 +2104,7 @@
 
     <section class="panel" id="phase5Panel">
       <div class="panel-header-row">
-        <h2><span class="phase-num-badge">③</span> Phase 5 — Pilotage terrain et adoption</h2>
+        <h2><span class="phase-num-badge">③</span> Phase 3 — Pilotage terrain et adoption</h2>
         <button class="section-toggle-btn" id="collapsePhase5Btn" type="button" title="Réduire / développer la section">▼ Réduire</button>
       </div>
       <div class="panel-collapsible" id="phase5Body">
@@ -2233,7 +2233,7 @@
 
     <section class="panel" id="phase6Panel">
       <div class="panel-header-row">
-        <h2><span class="phase-num-badge">④</span> Phase 6 — Passage à l'échelle</h2>
+        <h2><span class="phase-num-badge">④</span> Phase 4 — Passage à l'échelle</h2>
         <button class="section-toggle-btn" id="collapsePhase6Btn" type="button" title="Réduire / développer la section">▼ Réduire</button>
       </div>
       <div class="panel-collapsible" id="phase6Body">
@@ -8210,8 +8210,8 @@
         "Comparaison vs VMware",
         "Top alternatives",
         "Conformite",
-        "Phase 5",
-        "Phase 6",
+        "Phase 3",
+        "Phase 4",
         "Phase 8"
       ];
       toast.textContent = "Export " + kind + " genere: " + (data.org || "organisation") + " | sections: " + sections.join(", ");
@@ -12967,7 +12967,7 @@
 
       y = doc.lastAutoTable.finalY + 8;
       y = checkPageBreak(y, 20);
-      y = addSectionTitle("Phase 6 - Mutualisation et gouvernance", y);
+      y = addSectionTitle("Phase 4 - Mutualisation et gouvernance", y);
       doc.setFontSize(8.5);
       doc.setTextColor(70, 70, 70);
       doc.text(d.phase6PortfolioSummary || "Aucune consolidation disponible.", marginL, y);
@@ -13404,7 +13404,7 @@
 
       const wsP6 = workbook.addWorksheet("Mutualisation Phase6");
       wsP6.columns = [{ width: 26 }, { width: 20 }, { width: 40 }, { width: 14 }, { width: 34 }];
-      styleTitle(wsP6, "A1:E1", "Phase 6 - Mutualisation et gouvernance");
+      styleTitle(wsP6, "A1:E1", "Phase 4 - Mutualisation et gouvernance");
       wsP6.addRow([]);
       wsP6.addRow(["Synthese portefeuille", d.phase6PortfolioSummary || "Aucune consolidation disponible.", "", "", ""]);
       wsP6.mergeCells("B3:E3");
