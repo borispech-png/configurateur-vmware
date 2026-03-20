@@ -7701,7 +7701,7 @@
       const checkpoints = buildStepCheckpoints(answers);
       const coherenceAlerts = buildCoherenceAlerts(answers, checkpoints);
 
-      const workflowFlags = [answers.wfAnalyst, answers.wfRssi, answers.wfProcurement, answers.wfDecision];
+      const workflowFlags = [answers.wfAnalyst, answers.wfRssi]; // wfProcurement / wfDecision facultatifs
       const workflowDone = workflowFlags.filter(Boolean).length;
       const workflowRatio = workflowDone / workflowFlags.length;
 
@@ -7716,8 +7716,7 @@
       const gaps = [];
       if (!answers.wfAnalyst) gaps.push("Validation analyste technique manquante.");
       if (!answers.wfRssi) gaps.push("Validation RSSI manquante.");
-      if (!answers.wfProcurement) gaps.push("Validation achats/juridique manquante.");
-      if (!answers.wfDecision) gaps.push("Decision comite final non renseignee.");
+      // wfProcurement / wfDecision : facultatifs, non bloquants
 
       mandatoryRows.filter((row) => row.status !== "OK").forEach((row) => {
         gaps.push("Controle obligatoire incomplet: " + row.label + ".");
