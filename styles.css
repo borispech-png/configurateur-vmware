@@ -4949,3 +4949,40 @@ html[data-theme="dark"] .blocking-alert-list li { color:#fdba74; }
 /* ── Form sub-section workloads bloquants ────────────────────── */
 .form-subsection-title { font-size:.88rem; font-weight:700; color:var(--brand,#006d5d); margin:1.2rem 0 .25rem; }
 .form-subsection-hint { font-size:.76rem; color:#6b7280; margin:0 0 .6rem; line-height:1.4; }
+
+/* ── Migration checklist panel ─────────────────────────────── */
+.mig-checklist-toggle-btn { background:linear-gradient(135deg,#eff6ff,#dbeafe); border:1px solid #93c5fd; color:#1e40af; font-weight:700; font-size:.82rem; padding:5px 14px; border-radius:20px; cursor:pointer; white-space:nowrap; transition:background .15s; }
+.mig-checklist-toggle-btn:hover { background:#bfdbfe; }
+.mig-checklist-panel { background:#f8faff; border:1px solid #c7d2fe; border-radius:12px; padding:16px 18px; margin-bottom:14px; }
+.mig-cl-header { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:10px; }
+.mig-cl-title { font-size:.95rem; font-weight:800; color:#1e3a8a; margin:0; }
+.mig-cl-actions { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+.mig-cl-reset-btn { background:none; border:1px solid #d1d5db; color:#6b7280; font-size:.75rem; padding:3px 10px; border-radius:12px; cursor:pointer; }
+.mig-cl-reset-btn:hover { background:#fee2e2; border-color:#fca5a5; color:#dc2626; }
+.mig-cl-close-btn { background:none; border:none; font-size:1.1rem; cursor:pointer; color:#9ca3af; line-height:1; padding:2px 4px; }
+.mig-cl-close-btn:hover { color:#374151; }
+.mig-cl-progress-wrap { height:6px; background:#e0e7ff; border-radius:3px; overflow:hidden; margin-bottom:12px; }
+.mig-cl-progress-bar { height:100%; background:linear-gradient(90deg,#3b82f6,#818cf8); border-radius:3px; transition:width .4s; }
+.mig-cl-progress-lbl { font-size:.73rem; color:#6b7280; margin-bottom:10px; margin-top:-8px; }
+.mig-cl-steps { display:flex; flex-direction:column; gap:6px; }
+.mig-cl-step { border:1px solid #e5e7eb; border-radius:8px; overflow:hidden; transition:border-color .15s; }
+.mig-cl-step.mig-cl-done { border-color:#6ee7b7; background:#f0fdf4; }
+.mig-cl-check-label { display:flex; align-items:flex-start; gap:10px; padding:10px 12px; cursor:pointer; }
+.mig-cl-check-label input[type="checkbox"] { margin-top:3px; flex-shrink:0; accent-color:#3b82f6; width:16px; height:16px; }
+.mig-cl-step-body { flex:1; min-width:0; }
+.mig-cl-step-title { font-size:.84rem; font-weight:700; color:#1f2937; }
+.mig-cl-step.mig-cl-done .mig-cl-step-title { text-decoration:line-through; color:#6b7280; }
+.mig-cl-step-desc { font-size:.76rem; color:#6b7280; margin-top:2px; line-height:1.45; }
+.mig-cl-step-tool { font-size:.74rem; color:#1e40af; margin-top:4px; background:#eff6ff; border:1px solid #bfdbfe; border-radius:6px; padding:3px 8px; display:inline-block; }
+html[data-theme="dark"] .mig-checklist-panel { background:#0d1b3e; border-color:#1e3a8a; }
+html[data-theme="dark"] .mig-cl-title { color:#93c5fd; }
+html[data-theme="dark"] .mig-cl-step { border-color:#1e3a8a; }
+html[data-theme="dark"] .mig-cl-step.mig-cl-done { border-color:#166534; background:#0d2a20; }
+html[data-theme="dark"] .mig-cl-step-title { color:#e5e7eb; }
+html[data-theme="dark"] .mig-cl-step-desc { color:#9ca3af; }
+html[data-theme="dark"] .mig-cl-step-tool { background:#1e3a5f; border-color:#2563eb; color:#93c5fd; }
+html[data-theme="dark"] .mig-cl-reset-btn { border-color:#374151; color:#9ca3af; }
+
+/* ── Gantt task description expand ─────────────────────────── */
+.gantt-task-detail { font-size:.73rem; color:#6b7280; margin-top:3px; padding:4px 8px; background:#f9fafb; border-left:2px solid var(--brand,#006d5d); border-radius:0 4px 4px 0; line-height:1.45; }
+html[data-theme="dark"] .gantt-task-detail { background:#1a2533; color:#9ca3af; border-left-color:#34d399; }

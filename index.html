@@ -1542,10 +1542,14 @@
 
       <div class="results-heading-row">
         <h2>Cibles recommandees &amp; Comparaison VMware</h2>
-        <button id="whatIfToggleBtn" class="whatif-toggle-btn" hidden title="Simuler l'impact d'un changement de pondération">&#127922; Simuler</button>
+        <div class="results-heading-actions">
+          <button id="whatIfToggleBtn" class="whatif-toggle-btn" hidden title="Simuler l'impact d'un changement de pondération">&#127922; Simuler</button>
+          <button id="migChecklistToggle" class="mig-checklist-toggle-btn expert-only" hidden title="Checklist migration en 8 étapes adaptée à la solution recommandée">&#9989; Checklist migration</button>
+        </div>
       </div>
       <div id="recapStrip" class="recap-strip" hidden></div>
       <div id="blockingAlert" class="blocking-alert" hidden></div>
+      <div id="migChecklistPanel" class="mig-checklist-panel expert-only" hidden></div>
       <div id="whatIfPanel" class="whatif-panel" hidden>
         <div class="whatif-header">
           <span class="whatif-title">&#127922; Simulation — pondérations en temps réel</span>
@@ -6666,6 +6670,198 @@
       });
     }
 
+    // ── Checklist migration 8 étapes ────────────────────────────────────
+    var MIG_CHECKLIST_KEY = "vmconfig_mig_checklist";
+
+    var MIG_STEPS = [
+      {
+        id: "backup", num: "1", icon: "💾",
+        title: "Sauvegarder les VMs et données",
+        desc: "Protéger l'intégralité du parc VMware avant toute opération. En cas d'échec cette sauvegarde permet un retour arrière immédiat.",
+        tools: {
+          "Proxmox VE": "Veeam (plugin Proxmox) ou <strong>Proxmox Backup Server (PBS)</strong> — exporter les .vmdk vers un volume NFS dédié",
+          "XCP-ng + XOSTOR": "<strong>Xen Orchestra (XO)</strong> — snapshot + export vers stockage secondaire via xo-cli",
+          "Nutanix AHV": "<strong>Nutanix Move</strong> ou Veeam — snapshot Prism Central + export S3-compatible",
+          "Hyper-V / Azure Stack HCI": "<strong>Veeam B&R</strong> (support Hyper-V natif complet) ou Windows Server Backup",
+          "OpenStack + KVM": "Cinder snapshots + <strong>Freezer</strong> — export vers Ceph Object Storage",
+          "OpenShift Virtualization": "<strong>OADP</strong> (OpenShift API for Data Protection) + snapshots Ceph/ODF",
+          "Scale Computing HC3": "<strong>Scale DR</strong> snapshots + export vers site secondaire",
+          "Harvester (SUSE)": "<strong>Longhorn</strong> snapshots + backup S3 intégré",
+          "Cloud SecNumCloud": "Snapshots natifs + export vers stockage objet souverain (S3-compatible)",
+          "HPE VME / Morpheus": "Veeam (intégration Morpheus) ou solution native de l'hyperviseur sous-jacent"
+        },
+        default: "Sauvegarder toutes les VMs via Veeam ou la solution native. Exporter les .vmdk vers un volume de stockage indépendant (NFS, S3). Prévoir ≈2–4h par To."
+      },
+      {
+        id: "infra", num: "2", icon: "🏗️",
+        title: "Configurer l'infrastructure alternative",
+        desc: "Déployer le nouvel hyperviseur sur les hôtes physiques et configurer réseau et stockage avant tout transfert de VM.",
+        tools: {
+          "Proxmox VE": "Installer <strong>Proxmox VE 8.x</strong> via ISO — configurer cluster Corosync (≥3 nœuds pour HA) et stockage Ceph ou NFS/iSCSI",
+          "XCP-ng + XOSTOR": "Déployer <strong>XCP-ng 8.3+</strong> — configurer pool et Xen Orchestra — activer XOSTOR pour stockage distribué",
+          "Nutanix AHV": "Déployer via <strong>Nutanix Foundation</strong> — configurer cluster AOS et Prism Central en ≈4h (processus guidé)",
+          "Hyper-V / Azure Stack HCI": "Activer rôle Hyper-V sur Windows Server 2022 — configurer <strong>Failover Cluster Manager</strong> — intégrer Azure Arc",
+          "OpenStack + KVM": "Déployer via <strong>Kolla-Ansible</strong> ou OpenStack-Ansible — configurer Nova, Neutron, Cinder — compter 2–5 jours",
+          "OpenShift Virtualization": "Déployer <strong>OCP 4.x</strong> — activer l'opérateur OpenShift Virtualization — configurer ODF pour le stockage persistant",
+          "Scale Computing HC3": "<strong>HyperCore OS</strong> — déploiement via Scale Foundation — configuration automatisée en &lt;2h",
+          "Harvester (SUSE)": "Installer <strong>Harvester 1.3+</strong> — cluster Kubernetes sous-jacent auto-configuré"
+        },
+        default: "Installer l'hyperviseur cible sur les serveurs physiques. Configurer le réseau (VLAN, bonding) et le stockage avant tout transfert de VM."
+      },
+      {
+        id: "transfer", num: "3", icon: "📦",
+        title: "Transférer les images VM",
+        desc: "Copier les fichiers .vmdk depuis le stockage VMware vers le nouveau stockage. Préférer un transfert groupé plutôt que VM par VM pour optimiser le débit.",
+        tools: {
+          "Nutanix AHV": "<strong>Nutanix Move</strong> (outil officiel gratuit) — migration live depuis vCenter sans downtime pour les VMs non critiques",
+          "Hyper-V / Azure Stack HCI": "Copier les .vmdk via <code>robocopy</code> ou <code>rsync</code> — ou utiliser <strong>Azure Migrate</strong> pour un inventaire et transfert automatisé",
+          "Scale Computing HC3": "<strong>HyperCore Migration Tool</strong> — transfert intégré depuis vCenter"
+        },
+        default: "Monter le datastore VMware (NFS/NAS) sur le nouvel hôte — copier les .vmdk groupés par lot via <code>rsync -avP</code> ou <code>scp</code>. Prévoir ≈2–4h par To de données."
+      },
+      {
+        id: "convert", num: "4", icon: "🔄",
+        title: "Convertir les images disque (.vmdk → format cible)",
+        desc: "Tous les hyperviseurs ne lisent pas nativement le format VMware. La conversion est indispensable sauf pour les outils de migration automatisée.",
+        tools: {
+          "Proxmox VE": "<code>qemu-img convert -f vmdk -O qcow2 vm.vmdk vm.qcow2</code> — ou import direct depuis l'interface web (Import Disk → qcow2/raw)",
+          "XCP-ng + XOSTOR": "<code>qemu-img convert -f vmdk -O qcow2 vm.vmdk vm.qcow2</code> puis <code>xe vm-import filename=vm.xva</code> via Xen Orchestra",
+          "Nutanix AHV": "<strong>Nutanix Move gère la conversion automatiquement</strong> — pas de conversion manuelle nécessaire si Move est utilisé",
+          "Hyper-V / Azure Stack HCI": "<code>qemu-img convert -f vmdk -O vhd vm.vmdk vm.vhd</code> ou <strong>StarWind V2V Converter</strong> (GUI gratuite, Windows)",
+          "OpenStack + KVM": "<code>qemu-img convert -f vmdk -O qcow2 vm.vmdk vm.qcow2</code> puis <code>openstack image create --file vm.qcow2</code>",
+          "OpenShift Virtualization": "<strong>CDI</strong> (Containerized Data Importer) — importer le .vmdk directement via DataVolume YAML",
+          "Scale Computing HC3": "<strong>HyperCore Migration Tool</strong> — conversion intégrée depuis VMware (pas de conversion manuelle)",
+          "Harvester (SUSE)": "Interface Harvester — Upload image .qcow2 (convertir avec <code>qemu-img</code> au préalable)"
+        },
+        default: "<code>qemu-img convert -f vmdk -O qcow2 vm.vmdk vm.qcow2</code> pour KVM/Linux ou <code>-O vhd</code> pour Hyper-V. Prévoir 30–60 min par disque selon la taille."
+      },
+      {
+        id: "create", num: "5", icon: "🖥️",
+        title: "Créer les nouvelles VMs",
+        desc: "Créer les VMs dans le nouvel hyperviseur à partir des images converties. Automatiser via scripts pour les parcs de plus de 50 VMs.",
+        tools: {
+          "Proxmox VE": "<code>qm create 100 --memory 4096 --net0 virtio,bridge=vmbr0</code> puis <code>qm importdisk 100 vm.qcow2 local-lvm</code> — ou via l'interface web",
+          "XCP-ng + XOSTOR": "<code>xe vm-import filename=vm.xva sr-uuid=&lt;uuid&gt;</code> ou glisser-déposer dans <strong>Xen Orchestra</strong>",
+          "Nutanix AHV": "Prism Central → Image Service → créer VM depuis image importée en quelques clics",
+          "Hyper-V / Azure Stack HCI": "<code>New-VM -Name 'vm1' -VHDPath 'C:\\VMs\\vm.vhd' -MemoryStartupBytes 4GB</code> (PowerShell) ou Hyper-V Manager",
+          "OpenStack + KVM": "<code>openstack server create --image vm-img --flavor m1.large --network net1 vm-name</code>",
+          "OpenShift Virtualization": "Créer un objet <strong>VirtualMachine</strong> via YAML ou la console OpenShift — définir CPU, RAM, DataVolume",
+          "Scale Computing HC3": "Interface HyperCore — wizard VM — importer depuis image téléchargée"
+        },
+        default: "Créer les VMs depuis l'interface de gestion ou en CLI. Pour les grands parcs (>50 VMs), utiliser des playbooks <strong>Ansible</strong> ou des modules <strong>Terraform</strong> pour automatiser."
+      },
+      {
+        id: "config", num: "6", icon: "⚙️",
+        title: "Configurer le nouvel environnement",
+        desc: "Répliquer les politiques réseau, stockage, sécurité et accès. Étape souvent sous-estimée — prévoir du temps pour les configurations manuelles.",
+        tools: {
+          "Proxmox VE": "Configurer les <strong>bridges réseau</strong> (vmbr0/vmbr1), pools de stockage, permissions utilisateurs et règles firewall Proxmox SDN",
+          "XCP-ng + XOSTOR": "Configurer réseaux via <strong>Xen Orchestra</strong> — répliquer VLAN tags — configurer ACL et pools de ressources XCP-ng",
+          "Nutanix AHV": "<strong>Prism Central — Flow Network Security</strong> pour la micro-segmentation — répliquer les politiques vSAN → Nutanix Storage Policies",
+          "Hyper-V / Azure Stack HCI": "Configurer <strong>VMSwitch</strong> Hyper-V — répliquer GPO Active Directory — configurer Hyper-V Replica pour le DR",
+          "OpenStack + KVM": "Configurer <strong>Neutron</strong> (Security Groups, routers, VXLAN) — Heat pour l'IaC — Barbican pour la gestion des secrets",
+          "OpenShift Virtualization": "Configurer <strong>NetworkPolicy</strong> Kubernetes — ODF StorageClass — RBAC OpenShift pour les équipes"
+        },
+        default: "Répliquer : VLANs et politiques réseau, pools de stockage avec redondance équivalente, comptes de service et permissions, politiques snapshot/backup."
+      },
+      {
+        id: "cutover", num: "7", icon: "🔀",
+        title: "Rediriger le trafic de production",
+        desc: "Basculer le trafic DNS/load balancer vers les nouvelles VMs après validation en recette. Planifier dans une fenêtre de maintenance définie.",
+        tools: { default: "Baisser le TTL DNS à ≤300s 24h avant la bascule — modifier les VIPs load balancer — valider les SLAs métier pendant 2–4h avant de couper VMware définitivement." },
+        default: "Baisser le TTL DNS (≤300s) 24h avant — basculer les VIPs — valider les flux métier pendant 2–4h de surveillance avant de déclarer la migration réussie."
+      },
+      {
+        id: "decom", num: "8", icon: "🏁",
+        title: "Décommissionner l'environnement VMware",
+        desc: "Désactiver les VMs VMware, révoquer les licences Broadcom et décommissionner les hôtes ESXi. Ne pas se précipiter : conserver VMware en parallèle 2–4 semaines.",
+        tools: { default: "1. Suspendre (pas supprimer) les VMs VMware pendant 2–4 semaines. 2. Révoquer les licences Broadcom sur le portail. 3. Décommissionner les hôtes ESXi. 4. Archiver les .vmdk pendant 90 jours minimum avant suppression définitive." },
+        default: "Suspendre les VMs VMware sans les supprimer pendant 2–4 semaines — révoquer les licences Broadcom — décommissionner ESXi — archiver les .vmdk 90 jours."
+      }
+    ];
+
+    function _migChecklistKey(solName) {
+      return MIG_CHECKLIST_KEY + "_" + (solName || "default").replace(/[^a-z0-9]/gi, "_");
+    }
+
+    function _migLoadState(solName) {
+      try { return JSON.parse(localStorage.getItem(_migChecklistKey(solName)) || "{}"); } catch(e) { return {}; }
+    }
+
+    function _migSaveState(solName, state) {
+      try { localStorage.setItem(_migChecklistKey(solName), JSON.stringify(state)); } catch(e) {}
+    }
+
+    function buildMigrationChecklist(solName) {
+      var state = _migLoadState(solName);
+      var done = MIG_STEPS.filter(function(s){ return state[s.id]; }).length;
+      var pct = Math.round(done / MIG_STEPS.length * 100);
+
+      var h = '<div class="mig-cl-header">';
+      h += '<div>';
+      h += '<span class="mig-cl-title">&#9989; Checklist migration — <em>' + escHtml(solName || 'Solution recommandée') + '</em></span>';
+      h += '<span class="mig-cl-subtitle">Cochez chaque étape au fil de l\'avancement. Persisté localement.</span>';
+      h += '</div>';
+      h += '<div class="mig-cl-header-right">';
+      h += '<span class="mig-cl-progress-lbl">' + done + ' / ' + MIG_STEPS.length + ' étapes</span>';
+      h += '<div class="mig-cl-progress-bar-wrap"><div class="mig-cl-progress-bar" style="width:' + pct + '%"></div></div>';
+      h += '<button class="mig-cl-reset-btn" onclick="window._migResetChecklist()">&#8617; Réinitialiser</button>';
+      h += '<button class="mig-cl-close-btn" onclick="window._migCloseChecklist()">&times;</button>';
+      h += '</div></div>';
+
+      h += '<div class="mig-cl-steps">';
+      MIG_STEPS.forEach(function(step) {
+        var checked = !!state[step.id];
+        var toolHtml = (step.tools[solName] || step.tools.default || step.default);
+        h += '<div class="mig-cl-step' + (checked ? ' mig-cl-done' : '') + '" data-step-id="' + step.id + '">';
+        h += '<label class="mig-cl-check-label">';
+        h += '<input type="checkbox" class="mig-cl-check" data-step="' + step.id + '"' + (checked ? ' checked' : '') + ' onchange="window._migToggleStep(\'' + step.id + '\',this.checked)">';
+        h += '<span class="mig-cl-step-num">' + step.icon + ' ' + step.num + '</span>';
+        h += '<div class="mig-cl-step-body">';
+        h += '<div class="mig-cl-step-title">' + escHtml(step.title) + '</div>';
+        h += '<div class="mig-cl-step-desc">' + escHtml(step.desc) + '</div>';
+        h += '<div class="mig-cl-step-tool">&#128295; ' + toolHtml + '</div>';
+        h += '</div></label></div>';
+      });
+      h += '</div>';
+      return h;
+    }
+
+    var _migCurrentSol = "";
+
+    window._migToggleStep = function(stepId, checked) {
+      var state = _migLoadState(_migCurrentSol);
+      state[stepId] = checked;
+      _migSaveState(_migCurrentSol, state);
+      var panel = document.getElementById('migChecklistPanel');
+      if (panel && !panel.hidden) panel.innerHTML = buildMigrationChecklist(_migCurrentSol);
+    };
+
+    window._migResetChecklist = function() {
+      _migSaveState(_migCurrentSol, {});
+      var panel = document.getElementById('migChecklistPanel');
+      if (panel) panel.innerHTML = buildMigrationChecklist(_migCurrentSol);
+    };
+
+    window._migCloseChecklist = function() {
+      var panel = document.getElementById('migChecklistPanel');
+      if (panel) panel.hidden = true;
+      var btn = document.getElementById('migChecklistToggle');
+      if (btn) btn.textContent = '\u2705 Checklist migration';
+    };
+
+    function initMigChecklist() {
+      var btn = document.getElementById('migChecklistToggle');
+      if (!btn) return;
+      btn.addEventListener('click', function() {
+        var panel = document.getElementById('migChecklistPanel');
+        panel.hidden = !panel.hidden;
+        btn.textContent = panel.hidden ? '\u2705 Checklist migration' : '\u2705 Fermer checklist';
+        if (!panel.hidden) panel.innerHTML = buildMigrationChecklist(_migCurrentSol);
+      });
+    }
+    // ────────────────────────────────────────────────────────────────────
+
     // ── What-If / Sensitivity panel ─────────────────────────────────────
     var _WIF_KEYS = ['cost', 'sovereignty', 'migrationRisk', 'speed', 'reversibility'];
 
@@ -10789,6 +10985,10 @@
       var wifBtn = document.getElementById('whatIfToggleBtn');
       if (wifBtn) wifBtn.hidden = false;
       resetWhatIf();
+      // Reveal checklist button + set current solution
+      var migClBtn = document.getElementById('migChecklistToggle');
+      if (migClBtn) migClBtn.hidden = false;
+      if (result.top && result.top[0]) _migCurrentSol = result.top[0].name;
       renderPhase6Portfolio();
       appendPhaseBAuditEntry(result, validation);
       const elapsedMin = Math.max(1, Math.round((Date.now() - analysisSessionStart) / 60000));
@@ -11327,19 +11527,19 @@
 
     function buildGanttTemplateTasks(answers, granularity) {
       var tasks = [
-        { id: "kickoff", label: "Cadrage programme", lane: "governance", base: 1.2, risk: "modere", deps: [], critical: true, profileNeed: "chef_projet" },
-        { id: "governance", label: "Gouvernance et comites", lane: "governance", base: 1.6, risk: "modere", deps: ["kickoff"], critical: true, profileNeed: "chef_projet" },
-        { id: "compliance", label: "Conformite & controles", lane: "compliance", base: 1.8, risk: "eleve", deps: ["kickoff"], critical: true, profileNeed: "autre" },
-        { id: "pilotPrep", label: "Preparation pilote", lane: "technical", base: 1.8, risk: "modere", deps: ["governance", "compliance"], critical: true, profileNeed: "ingenieur" },
-        { id: "pilotRun", label: "Pilote technique", lane: "technical", base: 2.4, risk: "eleve", deps: ["pilotPrep"], critical: true, profileNeed: "technicien" },
-        { id: "factory", label: "Usine de migration", lane: "technical", base: 1.7, risk: "modere", deps: ["pilotRun"], critical: true, profileNeed: "ingenieur" },
-        { id: "lot1", label: "Migration lot 1", lane: "technical", base: 2.9, risk: "eleve", deps: ["factory"], critical: true, profileNeed: "technicien" },
-        { id: "lot2", label: "Migration lot 2", lane: "technical", base: 2.9, risk: "eleve", deps: ["lot1"], critical: true, profileNeed: "technicien" },
-        { id: "goNoGo", label: "Jalon Go/NoGo", lane: "cutover", base: 0.2, risk: "eleve", deps: ["pilotRun", "compliance"], critical: true, milestone: true, profileNeed: "chef_projet" },
-        { id: "rollout", label: "Generalisation", lane: "technical", base: 3.1, risk: "eleve", deps: ["goNoGo", "lot2"], critical: true, profileNeed: "ingenieur" },
-        { id: "cutover", label: "Bascule finale", lane: "cutover", base: 0.8, risk: "eleve", deps: ["rollout"], critical: true, profileNeed: "chef_projet" },
-        { id: "hypercare", label: "Stabilisation & hypercare", lane: "technical", base: 1.6, risk: "modere", deps: ["cutover"], critical: true, profileNeed: "technicien" },
-        { id: "closure", label: "Cloture programme", lane: "governance", base: 0.2, risk: "modere", deps: ["hypercare"], milestone: true, critical: true, profileNeed: "chef_projet" }
+        { id: "kickoff", label: "Cadrage programme", desc: "Définition du périmètre, des objectifs et du sponsor. Constitution de l'équipe projet, kick-off avec les parties prenantes DSI et métier.", lane: "governance", base: 1.2, risk: "modere", deps: [], critical: true, profileNeed: "chef_projet" },
+        { id: "governance", label: "Gouvernance et comites", desc: "Mise en place des instances de pilotage (COPIL, COPROJ). Suivi des risques, des dépendances et des décisions projet.", lane: "governance", base: 1.6, risk: "modere", deps: ["kickoff"], critical: true, profileNeed: "chef_projet" },
+        { id: "compliance", label: "Conformite & controles", desc: "Cartographie des données sensibles, audit de conformité RGPD/HDS/NIS2 si applicable, analyse des dépendances contractuelles Broadcom.", lane: "compliance", base: 1.8, risk: "eleve", deps: ["kickoff"], critical: true, profileNeed: "autre" },
+        { id: "pilotPrep", label: "Preparation pilote", desc: "Sélection des VMs pilotes (3–5 charges représentatives), préparation de l'environnement cible, plan de test détaillé et critères de succès.", lane: "technical", base: 1.8, risk: "modere", deps: ["governance", "compliance"], critical: true, profileNeed: "ingenieur" },
+        { id: "pilotRun", label: "Pilote technique", desc: "Migration des VMs pilotes, tests de performance et de régression, validation des SLAs de disponibilité sur la plateforme cible.", lane: "technical", base: 2.4, risk: "eleve", deps: ["pilotPrep"], critical: true, profileNeed: "technicien" },
+        { id: "factory", label: "Usine de migration", desc: "Construction de l'usine d'automatisation (scripts Ansible/Terraform, playbooks), industrialisation des procédures de migration et de rollback.", lane: "technical", base: 1.7, risk: "modere", deps: ["pilotRun"], critical: true, profileNeed: "ingenieur" },
+        { id: "lot1", label: "Migration lot 1", desc: "Migration des charges non critiques et de développement. Validation opérationnelle par les équipes. Documentation des incidents et adaptations.", lane: "technical", base: 2.9, risk: "eleve", deps: ["factory"], critical: true, profileNeed: "technicien" },
+        { id: "lot2", label: "Migration lot 2", desc: "Migration des charges de production standard. Bascule planifiée avec fenêtres de maintenance courtes. Validation applicative complète.", lane: "technical", base: 2.9, risk: "eleve", deps: ["lot1"], critical: true, profileNeed: "technicien" },
+        { id: "goNoGo", label: "Jalon Go/NoGo", desc: "Décision formelle de passage en production générale. Revue des critères : taux de succès pilote, stabilité plateforme, conformité, équipe prête.", lane: "cutover", base: 0.2, risk: "eleve", deps: ["pilotRun", "compliance"], critical: true, milestone: true, profileNeed: "chef_projet" },
+        { id: "rollout", label: "Generalisation", desc: "Déploiement progressif sur l'ensemble du parc. Monitoring renforcé, astreinte active. Priorisation selon criticité métier.", lane: "technical", base: 3.1, risk: "eleve", deps: ["goNoGo", "lot2"], critical: true, profileNeed: "ingenieur" },
+        { id: "cutover", label: "Bascule finale", desc: "Extinction des dernières VMs VMware, désactivation de vCenter. Activation du mode nominal sur la plateforme cible. Test de rollback disponible 72h.", lane: "cutover", base: 0.8, risk: "eleve", deps: ["rollout"], critical: true, profileNeed: "chef_projet" },
+        { id: "hypercare", label: "Stabilisation & hypercare", desc: "Période de surveillance intensive post-bascule. Résolution rapide des incidents, optimisation des performances, formation des équipes ops.", lane: "technical", base: 1.6, risk: "modere", deps: ["cutover"], critical: true, profileNeed: "technicien" },
+        { id: "closure", label: "Cloture programme", desc: "REX complet, archivage documentaire, mise à jour du CMDB, décommissionnement des licences VMware/Broadcom, clôture financière du projet.", lane: "governance", base: 0.2, risk: "modere", deps: ["hypercare"], milestone: true, critical: true, profileNeed: "chef_projet" }
       ];
 
       // Tâche conversion format disques (.vmdk → format cible) — toujours nécessaire
@@ -11348,6 +11548,7 @@
       tasks.splice(4, 0, {
         id: "vmConvert",
         label: "Conversion images VM — " + convTool,
+        desc: "Conversion des disques virtuels du format VMware (.vmdk) vers le format cible via " + convTool + ". Validation de l'intégrité des images converties avant migration.",
         lane: "technical",
         base: 1.5,
         risk: "modere",
@@ -11359,14 +11560,14 @@
 
       if (answers.depNsx || answers.depVsan || answers.depHorizon) {
         var networkLabel = answers.depNsx ? "Chantier reseau NSX/VXLAN" : (answers.depVsan ? "Sortie vSAN / stockage cible" : "Trajectoire Horizon/VDI");
-        tasks.splice(9, 0, { id: "network", label: networkLabel, lane: "technical", base: 2.2, risk: "eleve", deps: ["pilotPrep"], critical: true, profileNeed: "ingenieur" });
+        tasks.splice(9, 0, { id: "network", label: networkLabel, desc: "Refonte du plan réseau : migration des overlays NSX/VXLAN, reconfiguration du stockage distribué, ou adaptation de la topologie VDI selon le chantier identifié.", lane: "technical", base: 2.2, risk: "eleve", deps: ["pilotPrep"], critical: true, profileNeed: "ingenieur" });
         tasks.find(function(t) { return t.id === "rollout"; }).deps.push("network");
       }
 
       if (granularity === "detaille") {
         tasks.splice(6, 0,
-          { id: "tooling", label: "Industrialisation outillage", lane: "technical", base: 1.3, risk: "modere", deps: ["factory"], critical: false, profileNeed: "ingenieur" },
-          { id: "change", label: "Conduite du changement", lane: "governance", base: 1.4, risk: "modere", deps: ["pilotRun"], critical: false, profileNeed: "chef_projet" }
+          { id: "tooling", label: "Industrialisation outillage", desc: "Développement et test des scripts d'automatisation de migration. Intégration pipeline CI/CD pour la validation continue des configurations.", lane: "technical", base: 1.3, risk: "modere", deps: ["factory"], critical: false, profileNeed: "ingenieur" },
+          { id: "change", label: "Conduite du changement", desc: "Formation des équipes IT et métier, communication sur le planning, recueil des retours utilisateurs, mise à jour des procédures d'exploitation.", lane: "governance", base: 1.4, risk: "modere", deps: ["pilotRun"], critical: false, profileNeed: "chef_projet" }
         );
         tasks.find(function(t) { return t.id === "lot1"; }).deps.push("tooling");
       }
@@ -11403,6 +11604,7 @@
         var out = {
           id: task.id,
           label: task.label,
+          desc: task.desc || "",
           lane: task.lane,
           owner: ownerInfo.owner,
           profileLabel: ownerInfo.profileLabel,
@@ -11586,7 +11788,8 @@
         var startTxt = task.startDate.toLocaleDateString("fr-FR");
         var endTxt = task.endDate.toLocaleDateString("fr-FR");
         label.innerHTML = "<div class='title'>" + escHtml(task.label) + "</div>" +
-          "<div class='meta'>" + escHtml(task.owner) + " (" + escHtml(task.profileLabel || "Profil") + ") - " + startTxt + " -> " + endTxt + "</div>";
+          "<div class='meta'>" + escHtml(task.owner) + " (" + escHtml(task.profileLabel || "Profil") + ") - " + startTxt + " -> " + endTxt + "</div>" +
+          (task.desc ? "<div class='gantt-task-detail'>" + escHtml(task.desc) + "</div>" : "");
 
         var track = document.createElement("div");
         track.className = "gantt-track";
@@ -17031,6 +17234,7 @@
     initProductSheetModal();
     initCompareModal();
     initWhatIfPanel();
+    initMigChecklist();
     initGuideCopilot();
     initMatriceScoring();
     initCopilotInteractif();
