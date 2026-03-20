@@ -761,13 +761,17 @@
     </div>
 
     <section class="panel" id="clientPanel">
-      <div class="client-header">
-        <div class="client-icon">&#128100;</div>
-        <div>
-          <h2>Coordonnees de l'organisation</h2>
-          <p class="small">Ces informations apparaissent dans la synthese finale.</p>
+      <div class="panel-header-row">
+        <div class="client-header">
+          <div class="client-icon">&#128100;</div>
+          <div>
+            <h2>Coordonnees de l'organisation</h2>
+            <p class="small">Ces informations apparaissent dans la synthese finale.</p>
+          </div>
         </div>
+        <button class="section-toggle-btn" id="collapseClientBtn" type="button" title="Réduire / développer la section">&#9654; Développer</button>
       </div>
+      <div class="panel-collapsible" id="clientBody" style="display:none">
       <div class="grid-3">
         <div class="field">
           <label for="clientOrg">Nom de l'organisation</label>
@@ -811,6 +815,7 @@
           </div>
         </div>
       </div>
+      </div><!-- /clientBody -->
     </section>
 
     <section class="panel" id="questionnairePanel">
@@ -16278,6 +16283,7 @@
     function initPhasePanelCollapses() {
       // Mapping : [panelId, bodyId, btnId]
       var panels = [
+        ["clientPanel", "clientBody", "collapseClientBtn"],
         ["phase1Panel", "phase1Body", "collapsePhase1Btn"],
         ["phaseBPanel", "phaseBBody", "collapsePhaseBBtn"],
         ["phase5Panel", "phase5Body", "collapsePhase5Btn"],
