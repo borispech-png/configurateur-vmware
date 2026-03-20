@@ -6403,6 +6403,7 @@
       document.getElementById("ps-panel-licensing").classList.add("active");
 
       modal.hidden = false;
+      _animModal(modal);
     }
 
     // ── Données HA / DR par solution ────────────────────────────────
@@ -6657,7 +6658,9 @@
       document.getElementById('cmpTitle').textContent = title;
       document.querySelectorAll('.cmp-tab').forEach(function(t){ t.classList.toggle('active', t.dataset.cmpTab === 'overview'); });
       renderCmpCols();
-      document.getElementById('cmpModal').hidden = false;
+      var _cm = document.getElementById('cmpModal');
+      _cm.hidden = false;
+      _animModal(_cm);
     }
 
     function initCompareModal() {
@@ -7096,6 +7099,16 @@
       }
       if (!chips.length) return '';
       return '<span class="recap-label">Profil analysé :</span>' + chips.map(function(c){ return '<span class="recap-chip ' + c.cls + '">' + c.icon + ' ' + c.text + '</span>'; }).join('');
+    }
+
+    // ── Phase 3 — modal entrance helper ─────────────────────────
+    function _animModal(modal) {
+      if (!modal) return;
+      var win = modal.querySelector('.ps-modal, .cmp-dialog, .gantt-modal-window');
+      if (!win) return;
+      win.classList.remove('modal-anim-enter');
+      void win.offsetWidth; // force reflow
+      win.classList.add('modal-anim-enter');
     }
 
     // ── Phase 2 animations ───────────────────────────────────────
@@ -8342,7 +8355,23 @@
         btn.classList.toggle("active", btn.dataset.tab === tabId);
       });
       document.querySelectorAll(".result-tab-pane").forEach(function(pane) {
-        pane.classList.toggle("active", pane.id === "tab-" + tabId);
+        var becoming = pane.id === "tab-" + tabId;
+        if (becoming && !pane.classList.contains('active')) {
+          pane.classList.add('active');
+          pane.style.opacity   = '0';
+          pane.style.transform = 'translateY(8px)';
+          pane.style.transition = 'none';
+          requestAnimationFrame(function() {
+            pane.style.transition = 'opacity 0.18s ease, transform 0.18s ease';
+            pane.style.opacity   = '1';
+            pane.style.transform = 'translateY(0)';
+          });
+        } else if (!becoming) {
+          pane.classList.remove('active');
+          pane.style.opacity = '';
+          pane.style.transform = '';
+          pane.style.transition = '';
+        }
       });
     }
 
@@ -11894,6 +11923,7 @@
       seedGanttProfilesForm();
       seedGanttConstraintsForm();
       modal.hidden = false;
+      _animModal(modal);
       document.body.classList.add("assistant-modal-open");
     }
 
@@ -16357,15 +16387,39 @@
         var body = document.getElementById(cfg[1]);
         if (!btn || !body) return;
 
-        btn.addEventListener("click", function() {
-          var collapsed = body.style.display === "none";
-          body.style.display = collapsed ? "" : "none";
-          btn.innerHTML = collapsed ? "&#9660; Réduire" : "&#9654; Développer";
-        });
-
-        // Réduit par défaut
-        body.style.display = "none";
+        // État initial sans animation (réduit)
+        body.style.maxHeight = '0';
+        body.style.opacity   = '0';
+        body.setAttribute('data-collapsed', 'true');
         btn.innerHTML = "&#9654; Développer";
+
+        btn.addEventListener("click", function() {
+          var isCollapsed = body.getAttribute('data-collapsed') === 'true';
+          if (isCollapsed) {
+            body.setAttribute('data-collapsed', 'false');
+            body.style.maxHeight = body.scrollHeight + 'px';
+            body.style.opacity   = '1';
+            btn.innerHTML = "&#9660; Réduire";
+            // Libère max-height après la transition pour permettre contenu dynamique
+            body.addEventListener('transitionend', function onEnd(e) {
+              if (e.propertyName === 'max-height' && body.getAttribute('data-collapsed') === 'false') {
+                body.style.maxHeight = 'none';
+                body.removeEventListener('transitionend', onEnd);
+              }
+            });
+          } else {
+            // Force une valeur explicite avant de réduire
+            body.style.maxHeight = body.scrollHeight + 'px';
+            body.setAttribute('data-collapsed', 'true');
+            requestAnimationFrame(function() {
+              requestAnimationFrame(function() {
+                body.style.maxHeight = '0';
+                body.style.opacity   = '0';
+                btn.innerHTML = "&#9654; Développer";
+              });
+            });
+          }
+        });
       });
 
       // Step nav : clic → scroll vers la section + highlight actif
@@ -16373,13 +16427,21 @@
         step.addEventListener("click", function() {
           var target = document.getElementById(step.dataset.panel);
           if (!target) return;
-          // S'assurer que le body est visible
+          // S'assurer que le body est visible (expand animé)
           var bodyId = step.dataset.panel.replace("Panel", "Body");
           var body = document.getElementById(bodyId);
-          if (body && body.style.display === "none") {
-            body.style.display = "";
+          if (body && body.getAttribute('data-collapsed') === 'true') {
+            body.setAttribute('data-collapsed', 'false');
+            body.style.maxHeight = body.scrollHeight + 'px';
+            body.style.opacity   = '1';
             var toggleBtn = target.querySelector(".section-toggle-btn");
             if (toggleBtn) toggleBtn.innerHTML = "&#9660; Réduire";
+            body.addEventListener('transitionend', function onEnd(e) {
+              if (e.propertyName === 'max-height' && body.getAttribute('data-collapsed') === 'false') {
+                body.style.maxHeight = 'none';
+                body.removeEventListener('transitionend', onEnd);
+              }
+            });
           }
           target.scrollIntoView({ behavior: "smooth", block: "start" });
           // Highlight actif
