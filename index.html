@@ -7047,7 +7047,7 @@
         var cls = val >= 7.5 ? 'crit-hi' : val >= 5.5 ? 'crit-mid' : 'crit-lo';
         h += '<div class="card-crit-row">';
         h += '<span class="card-crit-lbl">' + c.icon + ' ' + c.label + '</span>';
-        h += '<div class="card-crit-bar-wrap"><div class="card-crit-bar ' + cls + '" style="width:' + pct + '%"></div></div>';
+        h += '<div class="card-crit-bar-wrap"><div class="card-crit-bar ' + cls + '" style="width:0%" data-width="' + pct + '%"></div></div>';
         h += '<span class="card-crit-val ' + cls + '">' + val.toFixed(1) + '</span>';
         h += '</div>';
       });
@@ -7098,6 +7098,45 @@
       return '<span class="recap-label">Profil analysé :</span>' + chips.map(function(c){ return '<span class="recap-chip ' + c.cls + '">' + c.icon + ' ' + c.text + '</span>'; }).join('');
     }
 
+    // ── Phase 2 animations ───────────────────────────────────────
+    function _countUp(el, from, to, duration) {
+      var start = null;
+      var isInt = Number.isInteger(to);
+      function step(ts) {
+        if (!start) start = ts;
+        var p = Math.min((ts - start) / duration, 1);
+        var ease = 1 - Math.pow(1 - p, 3);
+        var cur = from + (to - from) * ease;
+        el.textContent = isInt ? Math.round(cur) : cur.toFixed(1);
+        if (p < 1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    }
+
+    function _animateCards() {
+      var allCards = document.querySelectorAll('#cards .card');
+      allCards.forEach(function(card, i) {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(22px)';
+        card.style.transition = 'none';
+        setTimeout(function() {
+          card.style.transition = 'opacity 0.38s ease, transform 0.38s cubic-bezier(.4,0,.2,1), box-shadow 0.18s';
+          card.style.opacity = '1';
+          card.style.transform = 'translateY(0)';
+          // Compteur score
+          var sv = card.querySelector('.score-val');
+          if (sv) _countUp(sv, 0, parseFloat(sv.getAttribute('data-target')), 600);
+          // Barres critères (décalées de 150ms après entrée)
+          setTimeout(function() {
+            card.querySelectorAll('.card-crit-bar[data-width]').forEach(function(bar) {
+              bar.style.transition = 'width 0.5s cubic-bezier(.4,0,.2,1)';
+              bar.style.width = bar.getAttribute('data-width');
+            });
+          }, 150);
+        }, i * 90);
+      });
+    }
+
     function renderCards(top, vmware) {
       const cards = document.getElementById("cards");
       if (top.length === 0) {
@@ -7106,12 +7145,32 @@
       }
       const ans = getAnswers();
 
-      // Recap strip
+      // Recap strip — slide-down + chips cascade
       var _recapStrip = document.getElementById('recapStrip');
       if (_recapStrip) {
         var _recapHtml = buildRecapStrip(ans);
         _recapStrip.innerHTML = _recapHtml;
-        _recapStrip.hidden = !_recapHtml;
+        if (_recapHtml) {
+          _recapStrip.hidden = false;
+          _recapStrip.style.opacity = '0';
+          _recapStrip.style.transform = 'translateY(-8px)';
+          requestAnimationFrame(function() {
+            _recapStrip.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+            _recapStrip.style.opacity = '1';
+            _recapStrip.style.transform = 'translateY(0)';
+            _recapStrip.querySelectorAll('.recap-chip').forEach(function(chip, i) {
+              chip.style.opacity = '0';
+              chip.style.transform = 'scale(0.82)';
+              setTimeout(function() {
+                chip.style.transition = 'opacity 0.22s ease, transform 0.22s cubic-bezier(.4,0,.2,1)';
+                chip.style.opacity = '1';
+                chip.style.transform = 'scale(1)';
+              }, 80 + i * 35);
+            });
+          });
+        } else {
+          _recapStrip.hidden = true;
+        }
       }
 
       // Blocking workloads alert
@@ -7145,7 +7204,7 @@
         return "<article class=\"card\">" +
           "<label class=\"cmp-label\"><input type=\"checkbox\" class=\"cmp-check\" id=\"" + cbId + "\" onchange=\"toggleCompare('" + safeName + "',this)\">&#128202; Ajouter à la comparaison</label>" +
           "<h3>" + (idx + 1) + ". " + solution.name + archBadge + "</h3>" +
-          "<p class=\"score\">Score " + solution.score + "/100 | Ecart vs VMware " + sign + delta + " | <strong>" + wl.total + "h/semaine estimees</strong></p>" +
+          "<p class=\"score\">Score <span class='score-val' data-target='" + solution.score + "'>0</span>/100 | Ecart vs VMware " + sign + delta + " | <strong>" + wl.total + "h/semaine estimees</strong></p>" +
           "<p class=\"text-muted\">" + describeDelta(delta) + " pour ce profil cible.</p>" +
           veeamWarn +
           "<div class=\"pros-cons\">" +
@@ -7169,7 +7228,7 @@
         "<label class=\"cmp-label\"><input type=\"checkbox\" class=\"cmp-check\" onchange=\"toggleCompare('VMware (reference)',this)\">&#128202; Ajouter à la comparaison</label>" +
         "<div style=\"background:var(--brand);color:white;display:inline-block;padding:2px 8px;border-radius:4px;font-size:.7rem;margin-bottom:.5rem;font-weight:bold;\">BASELINE DE REFERENCE</div>" +
         "<h3>VMware (Maintien actuel)</h3>" +
-        "<p class=\"score\">Score " + vmware.score + "/100 | Baseline | <strong>" + vmWl.total + "h/semaine</strong></p>" +
+        "<p class=\"score\">Score <span class='score-val' data-target='" + vmware.score + "'>0</span>/100 | Baseline | <strong>" + vmWl.total + "h/semaine</strong></p>" +
         "<p class=\"text-muted\">Solution actuelle servant de point de comparaison pour les alternatives.</p>" +
         "<div class=\"pros-cons\">" +
           "<div class=\"box good\"><strong>Forces (Status Quo)</strong><br>" + vmware.pros.join("<br>") + "</div>" +
@@ -7178,6 +7237,9 @@
         "<p class='small' style='margin-top:1rem;font-style:italic;'>Note: Le score VMware est penalise par l'evolution tarifaire et les enjeux de souverainete.</p>" +
         "<button class=\"btn-fiche-produit\" onclick=\"openProductSheet('VMware (reference)')\">&#128196; Fiche produit</button>" +
       "</article>";
+
+      // Déclenche les animations Phase 2
+      requestAnimationFrame(_animateCards);
     }
 
     function updateConditionalSections() {
