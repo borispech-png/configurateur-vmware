@@ -918,6 +918,8 @@
     html[data-theme="dark"] .guide-incons-item { color: #d4b050; }
     html[data-theme="dark"] .guide-incons-title { color: #c0a040; }
 
+    @keyframes _toastIn  { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes _toastOut { from { opacity:1; transform:translateY(0);    } to { opacity:0; transform:translateY(12px); } }
     .export-toast {
       position: fixed;
       right: 16px;
@@ -928,11 +930,15 @@
       color: #174b53;
       border-radius: 12px;
       box-shadow: 0 8px 18px rgba(5, 38, 42, 0.14);
-      padding: 0.7rem 0.85rem;
+      padding: 0.7rem 0.85rem 0.4rem;
       z-index: 9999;
       font-size: 0.84rem;
       line-height: 1.35;
+      overflow: hidden;
     }
+    .export-toast.toast-in  { animation: _toastIn  .22s cubic-bezier(.4,0,.2,1) both; }
+    .export-toast.toast-out { animation: _toastOut .2s  ease-in both; }
+    .toast-progress-bar { height:3px; background:linear-gradient(90deg,var(--brand,#006d5d),#34d399); border-radius:0 0 2px 2px; margin-top:8px; margin-left:-0.85rem; margin-right:-0.85rem; transition:width linear; }
 
     button {
       border: none;
@@ -4457,6 +4463,15 @@
     .slw-runner-score { color: #7c3aed; }
     html[data-theme="dark"] .sol-leader-widget { background: #1e2d30; border-color: #2e4548; }
     html[data-theme="dark"] .slw-bar-track { background: #374151; }
+
+    /* Widget pulse après analyse */
+    @keyframes _slwPulse { 0%,100% { box-shadow:0 4px 20px rgba(0,0,0,.12); } 50% { box-shadow:0 6px 28px rgba(124,58,237,.4), 0 0 0 4px rgba(124,58,237,.12); } }
+    .sol-leader-widget.slw-pulse { animation: _slwPulse .55s ease-in-out; }
+
+    /* Ripple boutons primary */
+    button.primary { position: relative; overflow: hidden; }
+    .btn-ripple { position:absolute; border-radius:50%; background:rgba(255,255,255,.35); transform:scale(0); animation:_ripple .5s linear; pointer-events:none; }
+    @keyframes _ripple { to { transform:scale(4); opacity:0; } }
 
     /* ── AI Undo Banner ────────────────────────────────────────────── */
     .ai-undo-banner {

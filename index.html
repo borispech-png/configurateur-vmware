@@ -7101,6 +7101,19 @@
       return '<span class="recap-label">Profil analysé :</span>' + chips.map(function(c){ return '<span class="recap-chip ' + c.cls + '">' + c.icon + ' ' + c.text + '</span>'; }).join('');
     }
 
+    // ── Phase 4 — Ripple on .primary buttons ────────────────────
+    document.addEventListener('click', function(e) {
+      var btn = e.target.closest('button.primary');
+      if (!btn) return;
+      var r = document.createElement('span');
+      r.className = 'btn-ripple';
+      var rect = btn.getBoundingClientRect();
+      var size = Math.max(rect.width, rect.height);
+      r.style.cssText = 'width:' + size + 'px;height:' + size + 'px;left:' + (e.clientX - rect.left - size/2) + 'px;top:' + (e.clientY - rect.top - size/2) + 'px';
+      btn.appendChild(r);
+      r.addEventListener('animationend', function() { r.remove(); });
+    });
+
     // ── Phase 3 — modal entrance helper ─────────────────────────
     function _animModal(modal) {
       if (!modal) return;
@@ -8325,12 +8338,32 @@
         "Phase 4",
         "Phase 8"
       ];
-      toast.textContent = "Export " + kind + " genere: " + (data.org || "organisation") + " | sections: " + sections.join(", ");
+      const DURATION = 4800;
+      toast.innerHTML =
+        "Export <strong>" + kind + "</strong> généré : " + (data.org || "organisation") +
+        " | sections : " + sections.join(", ") +
+        "<div class='toast-progress-bar' id='toastProgressBar' style='width:100%'></div>";
       toast.hidden = false;
+      toast.classList.remove('toast-in', 'toast-out');
+      void toast.offsetWidth;
+      toast.classList.add('toast-in');
+
+      // Barre de progression
+      var _bar = document.getElementById('toastProgressBar');
+      if (_bar) {
+        _bar.style.transition = 'none';
+        _bar.style.width = '100%';
+        requestAnimationFrame(function() {
+          _bar.style.transition = 'width ' + DURATION + 'ms linear';
+          _bar.style.width = '0%';
+        });
+      }
+
       if (exportToastTimer) clearTimeout(exportToastTimer);
       exportToastTimer = setTimeout(function() {
-        toast.hidden = true;
-      }, 4800);
+        toast.classList.add('toast-out');
+        toast.addEventListener('animationend', function() { toast.hidden = true; toast.classList.remove('toast-out'); }, { once: true });
+      }, DURATION);
     }
 
     let guideModeEnabled = false;
@@ -17235,7 +17268,11 @@
           var best = sorted[0];
           if (slwName) slwName.textContent = best.name;
           if (slwBar)  slwBar.style.width  = Math.max(10, best.score) + "%";
-          if (slwConf) slwConf.textContent = best.score + "/100 — Score moteur";
+          if (slwConf) {
+            slwConf.innerHTML = "<span id='slwScoreNum'>0</span>/100 \u2014 Score moteur";
+            var _sn = document.getElementById('slwScoreNum');
+            if (_sn && typeof _countUp === 'function') _countUp(_sn, 0, best.score, 600);
+          }
           if (slwRun) {
             slwRun.innerHTML = sorted.slice(1, 4).map(function(s) {
               return "<div class='slw-runner'>" +
@@ -17245,6 +17282,11 @@
             }).join("");
           }
           widget.hidden = false;
+          // Pulse
+          widget.classList.remove('slw-pulse');
+          void widget.offsetWidth;
+          widget.classList.add('slw-pulse');
+          widget.addEventListener('animationend', function() { widget.classList.remove('slw-pulse'); }, { once: true });
           return;
         }
 
