@@ -4433,7 +4433,7 @@
       if (exportBtn) {
         exportBtn.addEventListener("click", async function() {
           var rows = getPhaseBAuditLog();
-          if (!rows.length) { alert("Le journal est vide."); return; }
+          if (!rows.length) { _notify("Le journal est vide.", 'info'); return; }
 
           var wb = new ExcelJS.Workbook();
           wb.creator = "VMware Configurateur";
@@ -7620,7 +7620,7 @@
       renderPhase5Backlog();
       updatePhase5Kpis();
       renderPhaseBAudit();
-      alert("Retention appliquee: donnees anciennes archivees selon la politique choisie.");
+      _notify("Rétention appliquée — données anciennes archivées selon la politique choisie.", 'success');
     }
 
     function renderList(id, items) {
@@ -7956,7 +7956,7 @@
 
       document.getElementById("stepNext").addEventListener("click", function() {
         if (!canAdvanceToNextStep()) {
-          alert("Cette etape contient un point bloquant. Corriger les alertes avant de continuer.");
+          _notify("Cette étape contient un point bloquant. Corrigez les alertes avant de continuer.", 'warning');
           return;
         }
         setFormStep(formCurrentStep + 1, true);
@@ -8326,6 +8326,47 @@
       if (panel) panel.classList.toggle("assistant-interview-mode", assistantInterviewMode);
     }
 
+    // ── Notification inline (remplace alert()) ───────────────────
+    function _notify(msg, type, duration) {
+      type = type || 'info';
+      duration = duration !== undefined ? duration : (type === 'error' ? 5500 : 4000);
+      var cfg = {
+        error:   { bg:'#fef2f2', border:'#fca5a5', color:'#991b1b', icon:'&#10060;' },
+        warning: { bg:'#fffbeb', border:'#fcd34d', color:'#92400e', icon:'&#9888;&#65039;' },
+        info:    { bg:'#eff6ff', border:'#93c5fd', color:'#1e40af', icon:'&#8505;&#65039;' },
+        success: { bg:'#f0fdf4', border:'#6ee7b7', color:'#065f46', icon:'&#9989;' }
+      };
+      var c = cfg[type] || cfg.info;
+      var safeMsg = (typeof escHtml === 'function' ? escHtml(msg) : msg)
+        .replace(/\n\n/g, '<br><br>').replace(/\n- /g, '<br>• ').replace(/\n/g, '<br>');
+      var n = document.createElement('div');
+      n.className = '_notify-toast';
+      n.style.cssText = [
+        'position:fixed;bottom:70px;right:16px;z-index:10000',
+        'max-width:min(440px,92vw)',
+        'padding:12px 14px 12px 16px',
+        'border-radius:10px',
+        'border:1px solid ' + c.border,
+        'background:' + c.bg,
+        'color:' + c.color,
+        'font-size:.84rem;line-height:1.5',
+        'box-shadow:0 6px 22px rgba(0,0,0,.13)',
+        'animation:_toastIn .22s cubic-bezier(.4,0,.2,1) both'
+      ].join(';');
+      n.innerHTML = '<div style="display:flex;align-items:flex-start;gap:10px">' +
+        '<span style="font-size:1rem;flex-shrink:0;margin-top:1px">' + c.icon + '</span>' +
+        '<span style="flex:1">' + safeMsg + '</span>' +
+        '<button onclick="this.closest(\'._notify-toast\').remove()" style="background:none;border:none;cursor:pointer;color:' + c.color + ';font-size:1.1rem;padding:0 0 0 8px;line-height:1;opacity:.55;flex-shrink:0" title="Fermer">&times;</button>' +
+        '</div>';
+      document.body.appendChild(n);
+      if (duration > 0) {
+        setTimeout(function() {
+          n.style.animation = '_toastOut .2s ease-in both';
+          n.addEventListener('animationend', function() { n.remove(); }, { once: true });
+        }, duration);
+      }
+    }
+
     function showExportToast(kind, data) {
       const toast = document.getElementById("exportToast");
       if (!toast) return;
@@ -8546,7 +8587,7 @@
     function historyLoad(id) {
       var arr = getHistory();
       var entry = arr.find(function(e) { return e.id === id; });
-      if (!entry || !entry.snapshot) { alert("Impossible de charger cette analyse (donnees incompletes)."); return; }
+      if (!entry || !entry.snapshot) { _notify("Impossible de charger cette analyse (données incomplètes).", 'error'); return; }
       latestAnalysisResult = entry.snapshot;
       render(entry.snapshot);
       if (typeof window._updateSolutionLeader === "function") window._updateSolutionLeader();
@@ -8562,7 +8603,7 @@
     }
 
     function saveCurrentAnalysis(name) {
-      if (!latestAnalysisResult) { alert("Aucune analyse en cours a sauvegarder."); return; }
+      if (!latestAnalysisResult) { _notify("Aucune analyse en cours à sauvegarder.", 'warning'); return; }
       var conf = buildConfidence(latestAnalysisResult);
       var entry = {
         id: Date.now(),
@@ -8610,7 +8651,7 @@
       });
       // Save analysis button
       document.getElementById("saveAnalysisBtn").addEventListener("click", function() {
-        if (!latestAnalysisResult) { alert("Lancez d'abord une analyse pour pouvoir la sauvegarder."); return; }
+        if (!latestAnalysisResult) { _notify("Lancez d'abord une analyse pour pouvoir la sauvegarder.", 'warning'); return; }
         var name = prompt("Nom de cette analyse (laisser vide pour le nom automatique):", "Analyse du " + new Date().toLocaleDateString("fr-FR"));
         if (name === null) return; // cancelled
         saveCurrentAnalysis(name || "");
@@ -9156,7 +9197,7 @@
           } else {
             // fallback : copier dans le presse-papier
             try { navigator.clipboard.writeText(prompt); } catch(e) {}
-            alert("Le chat Mistral n'est pas encore initialisé. Ouvrez-le via le bouton Chat en bas à droite, puis collez le prompt (déjà copié dans le presse-papier).");
+            _notify("Le chat Mistral n'est pas encore initialisé. Ouvrez-le via le bouton Chat en bas à droite, puis collez le prompt (déjà copié dans le presse-papier).", 'info', 6000);
             _restore();
           }
         });
@@ -10998,7 +11039,7 @@
           assistantCurrentStep = 5;
           assistantVisitedSteps.add(assistantCurrentStep);
           updateAssistantUi();
-          alert("Pre-check comite non conforme: corrigez les ecarts avant de lancer l'analyse (blocage dur actif).");
+          _notify("Pré-check comité non conforme : corrigez les écarts avant de lancer l'analyse (blocage dur actif).", 'error', 0);
           return;
         }
         syncFormFromAssistant();
@@ -11119,16 +11160,14 @@
       const answers = getAnswers();
       const validation = validateAnswers(answers);
       if (validation.errors.length > 0) {
-        alert("Saisie invalide:\n- " + validation.errors.join("\n- "));
+        _notify("Saisie invalide :\n- " + validation.errors.join("\n- "), 'error', 0);
         return;
       }
 
       const preState = buildPreCommitteeState(answers);
       if (getChecked("preCommitteeHardBlock") && !preState.ready) {
         const gapLines = preState.gaps.length ? "\n- " + preState.gaps.join("\n- ") : "\n- Aucun detail disponible";
-        alert("Mode pre-comite actif: analyse bloquee tant que les ecarts ne sont pas corriges." +
-          "\n\nEcarts detectes:" + gapLines +
-          "\n\nConsultez aussi la synthese dans le resume live.");
+        _notify("Mode pré-comité actif : analyse bloquée tant que les écarts ne sont pas corrigés.\n\nÉcarts détectés :" + gapLines + "\n\nConsultez la synthèse dans le résumé live.", 'error', 0);
         setFormStep(6, true);
         return;
       }
@@ -11278,7 +11317,7 @@
     function handleLogoFile(file) {
       if (!file || !file.type.startsWith("image/")) return;
       if (file.size > 2 * 1024 * 1024) {
-        alert("Le fichier est trop volumineux (max 2 Mo).");
+        _notify("Le fichier est trop volumineux (max 2 Mo).", 'error');
         return;
       }
       const reader = new FileReader();
@@ -12041,8 +12080,8 @@
 
     async function exportGanttCsv() {
       var scenario = getActiveGanttScenario();
-      if (!scenario) { alert("Générez d'abord un retroplanning Gantt."); return; }
-      if (typeof ExcelJS === "undefined") { alert("La librairie ExcelJS est en cours de chargement, réessayez dans quelques secondes."); return; }
+      if (!scenario) { _notify("Générez d'abord un retroplanning Gantt.", 'warning'); return; }
+      if (typeof ExcelJS === "undefined") { _notify("La librairie ExcelJS est en cours de chargement, réessayez dans quelques secondes.", 'info'); return; }
 
       var d = collectReportData();
       var accent = (d.color || "#006d5d").replace("#", "").toUpperCase();
@@ -12391,11 +12430,11 @@
     function exportGanttPdf() {
       var scenario = getActiveGanttScenario();
       if (!scenario) {
-        alert("Generez d'abord un retroplanning Gantt.");
+        _notify("Générez d'abord un retroplanning Gantt.", 'warning');
         return;
       }
       if (typeof window.jspdf === "undefined") {
-        alert("La librairie PDF est en cours de chargement, veuillez reessayer dans quelques secondes.");
+        _notify("La librairie PDF est en cours de chargement, réessayez dans quelques secondes.", 'info');
         return;
       }
       var d = collectReportData();
@@ -12434,7 +12473,7 @@
     function exportGanttPng() {
       var scenario = getActiveGanttScenario();
       if (!scenario) {
-        alert("Generez d'abord un retroplanning Gantt.");
+        _notify("Générez d'abord un retroplanning Gantt.", 'warning');
         return;
       }
       var monthCount = Math.max(6, Math.ceil(scenario.maxEnd) + 1);
@@ -12751,7 +12790,7 @@
     document.getElementById("exportPdf").addEventListener("click", function() {
       applyReportTemplate();
       if (typeof window.jspdf === "undefined") {
-        alert("La librairie PDF est en cours de chargement, veuillez reessayer dans quelques secondes.");
+        _notify("La librairie PDF est en cours de chargement, réessayez dans quelques secondes.", 'info');
         return;
       }
       const { jsPDF } = window.jspdf;
@@ -13266,7 +13305,7 @@
     document.getElementById("exportExcel").addEventListener("click", async function() {
       applyReportTemplate();
       if (typeof ExcelJS === "undefined") {
-        alert("La librairie ExcelJS est en cours de chargement, veuillez reessayer dans quelques secondes.");
+        _notify("La librairie ExcelJS est en cours de chargement, réessayez dans quelques secondes.", 'info');
         return;
       }
 
