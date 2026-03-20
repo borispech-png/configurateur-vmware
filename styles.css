@@ -4385,7 +4385,7 @@
     /* ── Solution Leader Widget ────────────────────────────────────── */
     .sol-leader-widget {
       position: fixed; bottom: 92px; left: 16px;
-      width: 220px;
+      width: 180px;
       background: var(--panel, #fff);
       border: 1px solid var(--line, #d6e3df);
       border-radius: 12px;
